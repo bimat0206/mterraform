@@ -201,6 +201,16 @@ output "transit_gateway_describe_command" {
   value       = var.tgw_enabled ? module.transit_gateway[0].describe_transit_gateway_command : null
 }
 
+output "transit_gateway_flow_logs_s3_bucket_id" {
+  description = "The ID of the S3 bucket for Transit Gateway flow logs (if S3 destination enabled)"
+  value       = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? aws_s3_bucket.tgw_flow_logs[0].id : null
+}
+
+output "transit_gateway_flow_logs_s3_bucket_arn" {
+  description = "The ARN of the S3 bucket for Transit Gateway flow logs (if S3 destination enabled)"
+  value       = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? aws_s3_bucket.tgw_flow_logs[0].arn : null
+}
+
 # -----------------------------------------------------------------------------
 # WAF Outputs
 # -----------------------------------------------------------------------------

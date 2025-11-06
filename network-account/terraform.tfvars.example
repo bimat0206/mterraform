@@ -391,9 +391,10 @@ alb_enabled = false # Set to true to enable ALB creation
 # tgw_flow_logs_retention_days   = 7  # 0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
 
 # Flow Logs (S3)
-# tgw_enable_flow_logs           = true
-# tgw_flow_logs_destination_type = "s3"
-# tgw_flow_logs_s3_bucket_arn    = "arn:aws:s3:::my-tgw-logs-bucket"
+# Note: S3 bucket is automatically created when tgw_flow_logs_destination_type = "s3"
+# tgw_enable_flow_logs              = true
+# tgw_flow_logs_destination_type    = "s3"
+# tgw_flow_logs_s3_retention_days   = 90  # Days to retain logs in S3 (0 = indefinite)
 
 # CloudWatch Alarms
 # tgw_enable_cloudwatch_alarms              = true
@@ -548,19 +549,26 @@ alb_enabled = false # Set to true to enable ALB creation
 # -----------------------------------------------------------------------------
 # Resource Associations
 # -----------------------------------------------------------------------------
-# Associate WAF with ALBs
+# Note: Use dynamic references from module outputs or data sources, NOT hardcoded ARNs
+#
+# Associate WAF with ALBs (use module outputs)
 # waf_associated_alb_arns = [
-#   "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/my-alb/abc123"
+#   module.alb[0].alb_arn  # Dynamic reference from ALB module
+# ]
+#
+# Or use data sources for resources created elsewhere:
+# waf_associated_alb_arns = [
+#   data.aws_lb.existing_alb.arn
 # ]
 
 # Associate WAF with API Gateway stages
 # waf_associated_api_gateway_arns = [
-#   "arn:aws:apigateway:us-east-1::/restapis/abc123/stages/prod"
+#   module.api_gateway[0].stage_arn  # Dynamic reference
 # ]
 
 # Associate WAF with AppSync APIs
 # waf_associated_appsync_arns = [
-#   "arn:aws:appsync:us-east-1:123456789012:apis/abc123"
+#   module.appsync[0].graphql_api_arn  # Dynamic reference
 # ]
 
 # -----------------------------------------------------------------------------

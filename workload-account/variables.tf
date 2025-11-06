@@ -993,3 +993,78 @@ variable "ecs_task_execution_role_policies" {
   default     = []
   description = "Additional IAM policies for task execution role"
 }
+
+# ECS ALB Configuration
+variable "ecs_alb_enabled" {
+  type        = bool
+  default     = false
+  description = "Create Application Load Balancer for ECS services"
+}
+
+variable "ecs_alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether the ALB is internal or internet-facing"
+}
+
+variable "ecs_alb_ingress_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks allowed to access the ALB"
+}
+
+variable "ecs_alb_enable_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Enable deletion protection for ALB"
+}
+
+variable "ecs_alb_redirect_http_to_https" {
+  type        = bool
+  default     = false
+  description = "Redirect HTTP to HTTPS (requires HTTPS listener)"
+}
+
+variable "ecs_alb_target_groups" {
+  type = map(object({
+    port     = number
+    protocol = string
+    health_check = object({
+      enabled             = optional(bool, true)
+      healthy_threshold   = optional(number, 3)
+      unhealthy_threshold = optional(number, 3)
+      timeout             = optional(number, 5)
+      interval            = optional(number, 30)
+      path                = optional(string, "/health")
+      matcher             = optional(string, "200")
+    })
+    deregistration_delay = optional(number, 30)
+  }))
+  default     = {}
+  description = "ALB target groups for ECS services"
+}
+
+variable "ecs_alb_listener_rules" {
+  type = map(object({
+    priority         = number
+    target_group_key = string
+    path_pattern     = optional(string)
+    host_header      = optional(string)
+  }))
+  default     = {}
+  description = "ALB listener rules for routing traffic"
+}
+
+# ECS Security Group Additional Rules
+variable "ecs_additional_security_group_rules" {
+  type = list(object({
+    from_port       = number
+    to_port         = number
+    protocol        = string
+    cidr_blocks     = optional(list(string))
+    security_groups = optional(list(string))
+    description     = optional(string)
+  }))
+  default     = []
+  description = "Additional security group rules for ECS tasks"
+}
