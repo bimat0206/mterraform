@@ -254,3 +254,106 @@ output "rds_sqlserver_connection_command" {
   description = "sqlcmd command to connect to SQL Server (if enabled)"
   value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].sqlcmd_command : null
 }
+
+# -----------------------------------------------------------------------------
+# EKS Outputs
+# -----------------------------------------------------------------------------
+output "eks_cluster_id" {
+  description = "EKS cluster ID/name (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_id : null
+}
+
+output "eks_cluster_endpoint" {
+  description = "EKS cluster API endpoint (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_endpoint : null
+}
+
+output "eks_cluster_arn" {
+  description = "EKS cluster ARN (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_arn : null
+}
+
+output "eks_cluster_version" {
+  description = "Kubernetes version (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_version : null
+}
+
+output "eks_cluster_security_group_id" {
+  description = "EKS cluster security group ID (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_security_group_id : null
+}
+
+output "eks_node_security_group_id" {
+  description = "EKS node security group ID (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].node_security_group_id : null
+}
+
+output "eks_oidc_provider_arn" {
+  description = "OIDC provider ARN for IRSA (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].oidc_provider_arn : null
+}
+
+output "eks_cluster_iam_role_arn" {
+  description = "EKS cluster IAM role ARN (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_iam_role_arn : null
+}
+
+output "eks_node_group_iam_role_arn" {
+  description = "EKS node group IAM role ARN (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].node_group_iam_role_arn : null
+}
+
+output "eks_ebs_csi_driver_iam_role_arn" {
+  description = "EBS CSI driver IAM role ARN (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].ebs_csi_driver_iam_role_arn : null
+}
+
+output "eks_aws_load_balancer_controller_iam_role_arn" {
+  description = "AWS Load Balancer Controller IAM role ARN (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].aws_load_balancer_controller_iam_role_arn : null
+}
+
+output "eks_cluster_log_group_name" {
+  description = "CloudWatch log group name for EKS control plane logs (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].cluster_log_group_name : null
+}
+
+output "eks_container_insights_log_group_names" {
+  description = "Container Insights log group names (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].container_insights_log_group_names : null
+}
+
+output "eks_kubeconfig_command" {
+  description = "Command to configure kubectl (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].kubeconfig_command : null
+}
+
+output "eks_node_group_ids" {
+  description = "Map of node group IDs (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].node_group_ids : null
+}
+
+output "eks_node_group_status" {
+  description = "Map of node group statuses (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].node_group_status : null
+}
+
+output "eks_enabled_log_types" {
+  description = "List of enabled EKS control plane log types (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].enabled_log_types : null
+}
+
+output "eks_addons_enabled" {
+  description = "Map of enabled EKS add-ons (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].addons_enabled : null
+}
+
+output "eks_view_cluster_logs_command" {
+  description = "Command to view EKS control plane logs (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].view_cluster_logs_command : null
+}
+
+output "eks_view_container_insights_command" {
+  description = "Command to view Container Insights logs (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].view_container_insights_command : null
+}
