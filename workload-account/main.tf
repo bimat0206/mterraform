@@ -1,4 +1,71 @@
 # -----------------------------------------------------------------------------
+# Key Pair Module for Linux (optional)
+# -----------------------------------------------------------------------------
+module "keypair_linux" {
+  count  = var.create_keypair_linux ? 1 : 0
+  source = "../modules/keypair"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "linux"
+  identifier  = "01"
+
+  # Key Pair Configuration
+  algorithm = var.keypair_algorithm
+  rsa_bits  = var.keypair_rsa_bits
+
+  # Secrets Manager Configuration
+  create_secret                 = var.keypair_store_in_secretsmanager
+  secret_recovery_window_in_days = var.keypair_secret_recovery_window
+  secret_kms_key_id             = var.keypair_kms_key_id
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# Key Pair Module for Windows (optional)
+# -----------------------------------------------------------------------------
+module "keypair_windows" {
+  count  = var.create_keypair_windows ? 1 : 0
+  source = "../modules/keypair"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "windows"
+  identifier  = "01"
+
+  # Key Pair Configuration
+  algorithm = var.keypair_algorithm
+  rsa_bits  = var.keypair_rsa_bits
+
+  # Secrets Manager Configuration
+  create_secret                 = var.keypair_store_in_secretsmanager
+  secret_recovery_window_in_days = var.keypair_secret_recovery_window
+  secret_kms_key_id             = var.keypair_kms_key_id
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# Locals for Key Pair Names
+# -----------------------------------------------------------------------------
+locals {
+  linux_key_name = var.create_keypair_linux ? module.keypair_linux[0].key_pair_name : (
+    var.ec2_linux_existing_key_name != "" ? var.ec2_linux_existing_key_name : var.ec2_linux_key_name
+  )
+
+  windows_key_name = var.create_keypair_windows ? module.keypair_windows[0].key_pair_name : (
+    var.ec2_windows_existing_key_name != "" ? var.ec2_windows_existing_key_name : var.ec2_windows_key_name
+  )
+}
+
+# -----------------------------------------------------------------------------
 # EC2 Linux Module (optional)
 # -----------------------------------------------------------------------------
 module "ec2_linux" {
@@ -20,7 +87,7 @@ module "ec2_linux" {
   # Instance Configuration
   instance_type = var.ec2_linux_instance_type
   ami_id        = var.ec2_linux_ami_id
-  key_name      = var.ec2_linux_key_name
+  key_name      = local.linux_key_name  # Use keypair module or existing/manual key
   monitoring    = var.ec2_linux_monitoring
   user_data     = var.ec2_linux_user_data
 
@@ -45,6 +112,9 @@ module "ec2_linux" {
 
   # Tags
   tags = local.common_tags
+
+  # Ensure key pair is created before EC2 instance
+  depends_on = [module.keypair_linux]
 }
 
 # -----------------------------------------------------------------------------
@@ -69,7 +139,7 @@ module "ec2_windows" {
   # Instance Configuration
   instance_type     = var.ec2_windows_instance_type
   ami_id            = var.ec2_windows_ami_id
-  key_name          = var.ec2_windows_key_name
+  key_name          = local.windows_key_name  # Use keypair module or existing/manual key
   monitoring        = var.ec2_windows_monitoring
   user_data         = var.ec2_windows_user_data
   get_password_data = var.ec2_windows_get_password_data
@@ -95,4 +165,7 @@ module "ec2_windows" {
 
   # Tags
   tags = local.common_tags
+
+  # Ensure key pair is created before EC2 instance
+  depends_on = [module.keypair_windows]
 }

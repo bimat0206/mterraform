@@ -1,4 +1,55 @@
 # -----------------------------------------------------------------------------
+# Key Pair Outputs - Linux
+# -----------------------------------------------------------------------------
+output "keypair_linux_name" {
+  description = "Linux key pair name (if created)"
+  value       = var.create_keypair_linux ? module.keypair_linux[0].key_pair_name : null
+}
+
+output "keypair_linux_secret_arn" {
+  description = "ARN of the secret containing Linux private key (if created)"
+  value       = var.create_keypair_linux ? module.keypair_linux[0].secret_arn : null
+}
+
+output "keypair_linux_secret_name" {
+  description = "Name of the secret containing Linux private key (if created)"
+  value       = var.create_keypair_linux ? module.keypair_linux[0].secret_name : null
+}
+
+output "keypair_linux_retrieve_command" {
+  description = "Command to retrieve Linux private key from Secrets Manager"
+  value       = var.create_keypair_linux ? module.keypair_linux[0].retrieve_secret_command : null
+}
+
+# -----------------------------------------------------------------------------
+# Key Pair Outputs - Windows
+# -----------------------------------------------------------------------------
+output "keypair_windows_name" {
+  description = "Windows key pair name (if created)"
+  value       = var.create_keypair_windows ? module.keypair_windows[0].key_pair_name : null
+}
+
+output "keypair_windows_secret_arn" {
+  description = "ARN of the secret containing Windows private key (if created)"
+  value       = var.create_keypair_windows ? module.keypair_windows[0].secret_arn : null
+}
+
+output "keypair_windows_secret_name" {
+  description = "Name of the secret containing Windows private key (if created)"
+  value       = var.create_keypair_windows ? module.keypair_windows[0].secret_name : null
+}
+
+output "keypair_windows_retrieve_command" {
+  description = "Command to retrieve Windows private key from Secrets Manager"
+  value       = var.create_keypair_windows ? module.keypair_windows[0].retrieve_secret_command : null
+}
+
+output "keypair_windows_decrypt_password_command" {
+  description = "Command to decrypt Windows password using private key from Secrets Manager"
+  value       = var.create_keypair_windows ? module.keypair_windows[0].decrypt_windows_password_command : null
+}
+
+# -----------------------------------------------------------------------------
 # EC2 Linux Outputs
 # -----------------------------------------------------------------------------
 output "ec2_linux_instance_id" {
