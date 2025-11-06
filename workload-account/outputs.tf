@@ -382,3 +382,129 @@ output "eks_fargate_enabled" {
   description = "Whether Fargate profiles are enabled (if EKS enabled)"
   value       = var.eks_enabled ? module.eks[0].fargate_enabled : null
 }
+
+# -----------------------------------------------------------------------------
+# ECR Outputs
+# -----------------------------------------------------------------------------
+output "ecr_repository_arns" {
+  description = "Map of ECR repository ARNs (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].repository_arns : null
+}
+
+output "ecr_repository_urls" {
+  description = "Map of ECR repository URLs (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].repository_urls : null
+}
+
+output "ecr_repository_names" {
+  description = "Map of ECR repository names (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].repository_names : null
+}
+
+output "ecr_registry_id" {
+  description = "ECR registry ID (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].registry_id : null
+}
+
+output "ecr_registry_url" {
+  description = "ECR registry URL (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].registry_url : null
+}
+
+output "ecr_docker_login_command" {
+  description = "Docker login command for ECR (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].docker_login_command : null
+}
+
+output "ecr_docker_commands" {
+  description = "Docker commands for each repository (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].docker_commands : null
+}
+
+output "ecr_repository_count" {
+  description = "Number of ECR repositories (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].repository_count : null
+}
+
+output "ecr_summary" {
+  description = "ECR configuration summary (if enabled)"
+  value       = var.ecr_enabled ? module.ecr[0].summary : null
+}
+
+# -----------------------------------------------------------------------------
+# ECS Outputs
+# -----------------------------------------------------------------------------
+output "ecs_cluster_id" {
+  description = "ECS cluster ID (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].cluster_id : null
+}
+
+output "ecs_cluster_arn" {
+  description = "ECS cluster ARN (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].cluster_arn : null
+}
+
+output "ecs_cluster_name" {
+  description = "ECS cluster name (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].cluster_name : null
+}
+
+output "ecs_capacity_providers" {
+  description = "ECS cluster capacity providers (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].capacity_providers : null
+}
+
+output "ecs_task_definition_arns" {
+  description = "Map of task definition ARNs (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].task_definition_arns : null
+}
+
+output "ecs_task_definition_families" {
+  description = "Map of task definition families (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].task_definition_families : null
+}
+
+output "ecs_service_ids" {
+  description = "Map of ECS service IDs (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].service_ids : null
+}
+
+output "ecs_service_names" {
+  description = "Map of ECS service names (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].service_names : null
+}
+
+output "ecs_task_execution_role_arn" {
+  description = "Task execution role ARN (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].task_execution_role_arn : null
+}
+
+output "ecs_task_role_arns" {
+  description = "Map of task role ARNs (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].task_role_arns : null
+}
+
+output "ecs_log_group_names" {
+  description = "Map of CloudWatch log group names (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].log_group_names : null
+}
+
+output "ecs_autoscaling_enabled" {
+  description = "Map of services with autoscaling enabled (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].autoscaling_enabled : null
+}
+
+output "ecs_commands" {
+  description = "Useful ECS CLI commands (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].commands : null
+}
+
+output "ecs_summary" {
+  description = "ECS configuration summary (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].summary : null
+}
+
+output "ecs_service_info" {
+  description = "Detailed service information (if enabled)"
+  value       = var.ecs_enabled ? module.ecs[0].service_info : null
+}

@@ -734,3 +734,311 @@ rds_mysql_enabled = false # Set to true to enable MySQL RDS
 # - Use smaller instance types and scale horizontally
 # - Reduce log retention for non-production (7 days vs 30 days)
 # - Use Fargate for serverless containers (pay per pod)
+
+# -----------------------------------------------------------------------------
+# ECR (Elastic Container Registry) Configuration
+# -----------------------------------------------------------------------------
+# Enable ECR module to create private container registries
+ecr_enabled = false
+
+# ECR Repositories
+# ecr_repositories = {
+#   backend = {
+#     image_tag_mutability = "IMMUTABLE"  # Tags cannot be overwritten (recommended for prod)
+#     scan_on_push         = true         # Scan images for vulnerabilities on push
+#     encryption_type      = "AES256"     # or "KMS" with kms_key_arn
+#
+#     lifecycle_policy = {
+#       max_image_count        = 30      # Keep only 30 most recent images
+#       max_untagged_days      = 7       # Delete untagged images after 7 days
+#       max_tagged_days        = 90      # Delete old tagged images after 90 days
+#       protected_tags         = ["latest", "prod", "v*"]  # Never delete these
+#       enable_untagged_expiry = true
+#     }
+#   }
+#
+#   frontend = {
+#     image_tag_mutability = "MUTABLE"   # Allow tag overwrites (dev/staging)
+#     scan_on_push         = true
+#
+#     lifecycle_policy = {
+#       max_image_count   = 20
+#       max_untagged_days = 3
+#       max_tagged_days   = 60
+#     }
+#   }
+#
+#   api = {
+#     scan_on_push    = true
+#     encryption_type = "KMS"
+#     kms_key_arn     = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
+#   }
+# }
+
+# Enhanced Scanning (AWS Inspector - additional cost)
+# ecr_enable_enhanced_scanning = true
+# ecr_scan_frequency           = "CONTINUOUS_SCAN"  # or "SCAN_ON_PUSH", "MANUAL"
+
+# Cross-Region Replication
+# ecr_enable_replication = true
+# ecr_replication_configuration = {
+#   rules = [
+#     {
+#       destinations = [
+#         {
+#           region      = "us-west-2"
+#           registry_id = "123456789012"
+#         },
+#         {
+#           region      = "eu-west-1"
+#           registry_id = "123456789012"
+#         }
+#       ]
+#       repository_filters = [
+#         {
+#           filter      = "prod-*"
+#           filter_type = "PREFIX_MATCH"
+#         }
+#       ]
+#     }
+#   ]
+# }
+
+# Pull Through Cache (cache public registries)
+# ecr_enable_pull_through_cache = true
+# ecr_pull_through_cache_rules = {
+#   docker-hub = {
+#     upstream_registry_url = "registry-1.docker.io"
+#     credential_arn        = "arn:aws:secretsmanager:us-east-1:123456789012:secret:dockerhub-creds"
+#   }
+#   github = {
+#     upstream_registry_url = "ghcr.io"
+#   }
+# }
+
+# After deployment, use these commands:
+# 1. Login to ECR:
+#    terraform output ecr_docker_login_command
+#
+# 2. Build and push image:
+#    docker build -t myapp:latest .
+#    docker tag myapp:latest <ecr-url>/tsk-dev-workload-backend:latest
+#    docker push <ecr-url>/tsk-dev-workload-backend:latest
+#
+# 3. View repositories:
+#    aws ecr describe-repositories
+#
+# 4. Scan image:
+#    aws ecr start-image-scan --repository-name <repo> --image-id imageTag=latest
+
+# -----------------------------------------------------------------------------
+# ECR Cost Estimation
+# -----------------------------------------------------------------------------
+# Storage: $0.10 per GB per month
+# Data Transfer: Standard AWS rates
+# Enhanced Scanning: ~$0.09 per image scan (first scan free)
+#
+# Example:
+# 5 repositories × 10 images × 500 MB = 25 GB storage = $2.50/month
+# Enhanced scanning: 50 images × $0.09 = ~$4.50/month
+# Total: ~$7/month
+
+# -----------------------------------------------------------------------------
+# ECS (Elastic Container Service) Configuration
+# -----------------------------------------------------------------------------
+# Enable ECS module to create Fargate-based container services
+ecs_enabled = false
+
+# ECS Cluster Configuration
+# ecs_cluster_name              = ""     # Defaults to: org-env-workload
+# ecs_enable_container_insights = true   # Enable CloudWatch Container Insights
+# ecs_enable_fargate            = true   # Enable Fargate capacity provider
+# ecs_enable_fargate_spot       = false  # Enable Fargate Spot (70% cheaper)
+
+# Capacity Provider Strategy (Fargate + Fargate Spot)
+# ecs_default_capacity_provider_strategy = [
+#   {
+#     capacity_provider = "FARGATE_SPOT"
+#     weight            = 4
+#     base              = 0
+#   },
+#   {
+#     capacity_provider = "FARGATE"
+#     weight            = 1
+#     base              = 1  # Always run at least 1 task on regular Fargate
+#   }
+# ]
+
+# Task Definitions
+# ecs_task_definitions = {
+#   web-app = {
+#     cpu    = "256"   # 0.25 vCPU
+#     memory = "512"   # 512 MB
+#
+#     container_definitions = [
+#       {
+#         name  = "web"
+#         image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/tsk-dev-workload-backend:latest"
+#
+#         portMappings = [
+#           {
+#             containerPort = 8080
+#             protocol      = "tcp"
+#           }
+#         ]
+#
+#         environment = [
+#           { name = "ENV", value = "production" },
+#           { name = "PORT", value = "8080" }
+#         ]
+#
+#         secrets = [
+#           {
+#             name      = "DATABASE_URL"
+#             valueFrom = "arn:aws:secretsmanager:us-east-1:123456789012:secret:db-url"
+#           }
+#         ]
+#
+#         healthCheck = {
+#           command     = ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+#           interval    = 30
+#           timeout     = 5
+#           retries     = 3
+#           startPeriod = 60
+#         }
+#       }
+#     ]
+#
+#     # Task role (application permissions)
+#     task_role_policy_statements = [
+#       {
+#         effect    = "Allow"
+#         actions   = ["s3:GetObject", "s3:PutObject"]
+#         resources = ["arn:aws:s3:::my-bucket/*"]
+#       }
+#     ]
+#   }
+#
+#   # Multi-container task with sidecar
+#   api-with-sidecar = {
+#     cpu    = "512"
+#     memory = "1024"
+#
+#     container_definitions = [
+#       {
+#         name  = "api"
+#         image = "myapi:latest"
+#         portMappings = [{ containerPort = 3000 }]
+#       },
+#       {
+#         name      = "log-router"
+#         image     = "public.ecr.aws/aws-observability/aws-for-fluent-bit:latest"
+#         essential = false
+#       }
+#     ]
+#   }
+# }
+
+# ECS Services
+# ecs_services = {
+#   web-app = {
+#     task_definition_key = "web-app"
+#     desired_count       = 2
+#
+#     subnets         = var.private_subnet_ids
+#     security_groups = ["sg-1234567890abcdef0"]
+#
+#     # ALB Integration
+#     load_balancers = [
+#       {
+#         target_group_arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-tg/..."
+#         container_name   = "web"
+#         container_port   = 8080
+#       }
+#     ]
+#
+#     health_check_grace_period_seconds = 60
+#
+#     # Auto-scaling
+#     autoscaling = {
+#       min_capacity = 2
+#       max_capacity = 10
+#
+#       target_tracking_policies = [
+#         {
+#           name              = "cpu-target-tracking"
+#           target_value      = 70.0
+#           predefined_metric = "ECSServiceAverageCPUUtilization"
+#           scale_in_cooldown  = 300
+#           scale_out_cooldown = 60
+#         },
+#         {
+#           name              = "memory-target-tracking"
+#           target_value      = 80.0
+#           predefined_metric = "ECSServiceAverageMemoryUtilization"
+#         }
+#       ]
+#     }
+#   }
+# }
+
+# CloudWatch Logs
+# ecs_create_cloudwatch_log_groups = true
+# ecs_log_retention_in_days        = 7
+
+# After deployment:
+# 1. List services:
+#    terraform output ecs_commands
+#
+# 2. View logs:
+#    aws logs tail /ecs/<cluster-name>/<task-key> --follow
+#
+# 3. Update service (force new deployment):
+#    aws ecs update-service --cluster <cluster> --service <service> --force-new-deployment
+#
+# 4. Execute command in container (if enable_execute_command = true):
+#    aws ecs execute-command --cluster <cluster> --task <task-id> \
+#      --container <container> --interactive --command "/bin/sh"
+
+# -----------------------------------------------------------------------------
+# ECS Fargate Task Sizes
+# -----------------------------------------------------------------------------
+# CPU (vCPU)  | Memory (GB)
+# ------------|------------------
+# 0.25        | 0.5, 1, 2
+# 0.5         | 1, 2, 3, 4
+# 1           | 2, 3, 4, 5, 6, 7, 8
+# 2           | 4-16 (1 GB increments)
+# 4           | 8-30 (1 GB increments)
+
+# -----------------------------------------------------------------------------
+# ECS Cost Estimation (Fargate, us-east-1)
+# -----------------------------------------------------------------------------
+# CPU: $0.04048 per vCPU per hour
+# Memory: $0.004445 per GB per hour
+#
+# Examples (per task, per month):
+# 0.25 vCPU + 0.5 GB  = ~$9/month
+# 0.5 vCPU + 1 GB     = ~$18/month
+# 1 vCPU + 2 GB       = ~$35/month
+# 2 vCPU + 4 GB       = ~$70/month
+#
+# Fargate Spot (70% discount):
+# 1 vCPU + 2 GB       = ~$10.50/month
+#
+# Example service (2-10 tasks with auto-scaling):
+# Average 5 tasks × 1 vCPU + 2 GB = ~$175/month (Fargate)
+# Average 5 tasks × 1 vCPU + 2 GB = ~$52/month (Fargate Spot)
+#
+# Additional costs:
+# CloudWatch Logs: $0.50/GB ingested
+# Container Insights: Included (no additional charge)
+# Data Transfer: $0.09/GB (outbound)
+# ALB: ~$16/month + $0.008 per LCU-hour
+#
+# Tips:
+# - Use Fargate Spot for fault-tolerant workloads (70% savings)
+# - Right-size tasks (don't over-provision CPU/memory)
+# - Use auto-scaling to match demand
+# - Set log retention to control CloudWatch costs
+# - Use ECR lifecycle policies to reduce storage costs

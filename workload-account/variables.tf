@@ -659,3 +659,337 @@ variable "eks_map_iam_groups" {
   default     = {}
   description = "IAM groups to map to Kubernetes RBAC"
 }
+
+# -----------------------------------------------------------------------------
+# ECR Module Variables
+# -----------------------------------------------------------------------------
+variable "ecr_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable ECR module"
+}
+
+variable "ecr_repositories" {
+  type = map(object({
+    image_tag_mutability = optional(string, "MUTABLE")
+    scan_on_push         = optional(bool, true)
+    encryption_type      = optional(string, "AES256")
+    kms_key_arn          = optional(string, null)
+
+    lifecycle_policy = optional(object({
+      max_image_count        = optional(number, 30)
+      max_untagged_days      = optional(number, 7)
+      max_tagged_days        = optional(number, 90)
+      protected_tags         = optional(list(string), ["latest", "prod", "production"])
+      enable_untagged_expiry = optional(bool, true)
+    }), {})
+
+    repository_policy = optional(string, null)
+    force_delete      = optional(bool, false)
+    tags              = optional(map(string), {})
+  }))
+  default     = {}
+  description = "ECR repository configurations"
+}
+
+variable "ecr_enable_enhanced_scanning" {
+  type        = bool
+  default     = false
+  description = "Enable AWS Inspector enhanced scanning"
+}
+
+variable "ecr_scan_frequency" {
+  type        = string
+  default     = "SCAN_ON_PUSH"
+  description = "Scan frequency: SCAN_ON_PUSH, CONTINUOUS_SCAN, or MANUAL"
+}
+
+variable "ecr_enable_replication" {
+  type        = bool
+  default     = false
+  description = "Enable cross-region or cross-account replication"
+}
+
+variable "ecr_replication_configuration" {
+  type = object({
+    rules = list(object({
+      destinations = list(object({
+        region      = string
+        registry_id = optional(string)
+      }))
+      repository_filters = optional(list(object({
+        filter      = string
+        filter_type = string
+      })), [])
+    }))
+  })
+  default = {
+    rules = []
+  }
+  description = "Replication configuration for ECR"
+}
+
+variable "ecr_enable_pull_through_cache" {
+  type        = bool
+  default     = false
+  description = "Enable pull through cache for public registries"
+}
+
+variable "ecr_pull_through_cache_rules" {
+  type = map(object({
+    upstream_registry_url = string
+    credential_arn        = optional(string)
+  }))
+  default     = {}
+  description = "Pull through cache rules"
+}
+
+# -----------------------------------------------------------------------------
+# ECS Module Variables
+# -----------------------------------------------------------------------------
+variable "ecs_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable ECS module"
+}
+
+variable "ecs_cluster_name" {
+  type        = string
+  default     = ""
+  description = "Custom ECS cluster name (defaults to: org-env-workload)"
+}
+
+variable "ecs_enable_container_insights" {
+  type        = bool
+  default     = true
+  description = "Enable CloudWatch Container Insights"
+}
+
+variable "ecs_cluster_settings" {
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  default = [
+    {
+      name  = "containerInsights"
+      value = "enabled"
+    }
+  ]
+  description = "ECS cluster settings"
+}
+
+variable "ecs_enable_fargate" {
+  type        = bool
+  default     = true
+  description = "Enable AWS Fargate capacity provider"
+}
+
+variable "ecs_enable_fargate_spot" {
+  type        = bool
+  default     = false
+  description = "Enable AWS Fargate Spot capacity provider"
+}
+
+variable "ecs_default_capacity_provider_strategy" {
+  type = list(object({
+    capacity_provider = string
+    weight            = number
+    base              = optional(number, 0)
+  }))
+  default = [
+    {
+      capacity_provider = "FARGATE"
+      weight            = 1
+      base              = 1
+    }
+  ]
+  description = "Default capacity provider strategy"
+}
+
+variable "ecs_task_definitions" {
+  type = map(object({
+    family                   = optional(string)
+    cpu                      = string
+    memory                   = string
+    network_mode             = optional(string, "awsvpc")
+    requires_compatibilities = optional(list(string), ["FARGATE"])
+
+    container_definitions = list(object({
+      name         = string
+      image        = string
+      cpu          = optional(number)
+      memory       = optional(number)
+      essential    = optional(bool, true)
+      command      = optional(list(string))
+      entryPoint   = optional(list(string))
+      environment  = optional(list(object({
+        name  = string
+        value = string
+      })), [])
+      secrets      = optional(list(object({
+        name      = string
+        valueFrom = string
+      })), [])
+      portMappings = optional(list(object({
+        containerPort = number
+        hostPort      = optional(number)
+        protocol      = optional(string, "tcp")
+      })), [])
+      healthCheck  = optional(object({
+        command     = list(string)
+        interval    = optional(number, 30)
+        timeout     = optional(number, 5)
+        retries     = optional(number, 3)
+        startPeriod = optional(number, 0)
+      }))
+      logConfiguration = optional(object({
+        logDriver = string
+        options   = map(string)
+      }))
+      mountPoints = optional(list(object({
+        sourceVolume  = string
+        containerPath = string
+        readOnly      = optional(bool, false)
+      })), [])
+      volumesFrom = optional(list(object({
+        sourceContainer = string
+        readOnly        = optional(bool, false)
+      })), [])
+    }))
+
+    task_role_arn = optional(string)
+    task_role_policies = optional(list(string), [])
+    task_role_policy_statements = optional(list(object({
+      effect    = string
+      actions   = list(string)
+      resources = list(string)
+    })), [])
+
+    execution_role_arn = optional(string)
+
+    volumes = optional(list(object({
+      name      = string
+      host_path = optional(string)
+      efs_volume_configuration = optional(object({
+        file_system_id          = string
+        root_directory          = optional(string, "/")
+        transit_encryption      = optional(string, "ENABLED")
+        transit_encryption_port = optional(number)
+        authorization_config = optional(object({
+          access_point_id = optional(string)
+          iam             = optional(string, "DISABLED")
+        }))
+      }))
+    })), [])
+
+    runtime_platform = optional(object({
+      operating_system_family = optional(string, "LINUX")
+      cpu_architecture        = optional(string, "X86_64")
+    }))
+
+    tags = optional(map(string), {})
+  }))
+  default     = {}
+  description = "ECS task definition configurations"
+}
+
+variable "ecs_services" {
+  type = map(object({
+    task_definition_key = string
+    desired_count       = number
+
+    launch_type = optional(string)
+    capacity_provider_strategy = optional(list(object({
+      capacity_provider = string
+      weight            = number
+      base              = optional(number, 0)
+    })))
+
+    subnets          = list(string)
+    security_groups  = list(string)
+    assign_public_ip = optional(bool, false)
+
+    load_balancers = optional(list(object({
+      target_group_arn = string
+      container_name   = string
+      container_port   = number
+    })), [])
+
+    service_registry_arn = optional(string)
+
+    deployment_minimum_healthy_percent = optional(number, 100)
+    deployment_maximum_percent         = optional(number, 200)
+    enable_ecs_managed_tags           = optional(bool, true)
+    propagate_tags                    = optional(string, "SERVICE")
+    enable_execute_command            = optional(bool, false)
+
+    health_check_grace_period_seconds = optional(number)
+
+    placement_constraints = optional(list(object({
+      type       = string
+      expression = optional(string)
+    })), [])
+
+    autoscaling = optional(object({
+      min_capacity = number
+      max_capacity = number
+
+      target_tracking_policies = optional(list(object({
+        name               = string
+        target_value       = number
+        predefined_metric  = optional(string)
+        custom_metric      = optional(object({
+          metric_name = string
+          namespace   = string
+          statistic   = string
+        }))
+        scale_in_cooldown  = optional(number, 300)
+        scale_out_cooldown = optional(number, 60)
+      })), [])
+
+      step_scaling_policies = optional(list(object({
+        name               = string
+        adjustment_type    = string
+        cooldown           = optional(number, 300)
+        metric_aggregation_type = optional(string, "Average")
+
+        step_adjustments = list(object({
+          scaling_adjustment          = number
+          metric_interval_lower_bound = optional(number)
+          metric_interval_upper_bound = optional(number)
+        }))
+
+        alarm_name = string
+      })), [])
+    }))
+
+    tags = optional(map(string), {})
+  }))
+  default     = {}
+  description = "ECS service configurations"
+}
+
+variable "ecs_create_cloudwatch_log_groups" {
+  type        = bool
+  default     = true
+  description = "Create CloudWatch log groups for ECS tasks"
+}
+
+variable "ecs_log_retention_in_days" {
+  type        = number
+  default     = 7
+  description = "CloudWatch log retention days"
+}
+
+variable "ecs_create_task_execution_role" {
+  type        = bool
+  default     = true
+  description = "Create task execution role"
+}
+
+variable "ecs_task_execution_role_policies" {
+  type        = list(string)
+  default     = []
+  description = "Additional IAM policies for task execution role"
+}
