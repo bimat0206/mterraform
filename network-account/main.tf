@@ -204,3 +204,60 @@ module "alb" {
   # Tags
   tags = local.common_tags
 }
+
+# -----------------------------------------------------------------------------
+# Transit Gateway Module (optional)
+# -----------------------------------------------------------------------------
+module "transit_gateway" {
+  count  = var.tgw_enabled ? 1 : 0
+  source = "../modules/transit-gateway"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "tgw"
+  identifier  = "01"
+
+  # Transit Gateway Configuration
+  description                     = var.tgw_description
+  amazon_side_asn                 = var.tgw_amazon_side_asn
+  auto_accept_shared_attachments  = var.tgw_auto_accept_shared_attachments
+  default_route_table_association = var.tgw_default_route_table_association
+  default_route_table_propagation = var.tgw_default_route_table_propagation
+  dns_support                     = var.tgw_dns_support
+  vpn_ecmp_support                = var.tgw_vpn_ecmp_support
+  multicast_support               = var.tgw_multicast_support
+  transit_gateway_cidr_blocks     = var.tgw_cidr_blocks
+
+  # VPC Attachments
+  vpc_attachments = var.tgw_vpc_attachments
+
+  # Custom Route Tables
+  create_custom_route_tables = var.tgw_create_custom_route_tables
+  custom_route_tables        = var.tgw_custom_route_tables
+
+  # Flow Logs
+  enable_flow_logs                     = var.tgw_enable_flow_logs
+  flow_logs_destination_type           = var.tgw_flow_logs_destination_type
+  flow_logs_s3_bucket_arn              = var.tgw_flow_logs_s3_bucket_arn
+  flow_logs_retention_days             = var.tgw_flow_logs_retention_days
+  flow_logs_max_aggregation_interval   = var.tgw_flow_logs_max_aggregation_interval
+  create_flow_logs_iam_role            = var.tgw_create_flow_logs_iam_role
+
+  # CloudWatch Alarms
+  enable_cloudwatch_alarms              = var.tgw_enable_cloudwatch_alarms
+  alarm_sns_topic_arn                   = var.tgw_alarm_sns_topic_arn
+  bytes_in_threshold                    = var.tgw_bytes_in_threshold
+  bytes_out_threshold                   = var.tgw_bytes_out_threshold
+  packet_drop_count_blackhole_threshold = var.tgw_packet_drop_count_blackhole_threshold
+  packet_drop_count_no_route_threshold  = var.tgw_packet_drop_count_no_route_threshold
+
+  # Resource Sharing
+  enable_resource_sharing       = var.tgw_enable_resource_sharing
+  ram_principals                = var.tgw_ram_principals
+  ram_allow_external_principals = var.tgw_ram_allow_external_principals
+
+  # Tags
+  tags = local.common_tags
+}

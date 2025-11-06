@@ -147,3 +147,56 @@ output "alb_s3_bucket_arn" {
   description = "The ARN of the S3 bucket for ALB logs (if enabled)"
   value       = var.alb_enabled ? module.alb[0].s3_bucket_arn : null
 }
+
+# -----------------------------------------------------------------------------
+# Transit Gateway Outputs
+# -----------------------------------------------------------------------------
+output "transit_gateway_id" {
+  description = "The ID of the Transit Gateway (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].transit_gateway_id : null
+}
+
+output "transit_gateway_arn" {
+  description = "The ARN of the Transit Gateway (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].transit_gateway_arn : null
+}
+
+output "transit_gateway_name" {
+  description = "The name of the Transit Gateway (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].transit_gateway_name : null
+}
+
+output "transit_gateway_association_default_route_table_id" {
+  description = "The ID of the default association route table (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].transit_gateway_association_default_route_table_id : null
+}
+
+output "transit_gateway_propagation_default_route_table_id" {
+  description = "The ID of the default propagation route table (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].transit_gateway_propagation_default_route_table_id : null
+}
+
+output "transit_gateway_vpc_attachment_ids" {
+  description = "Map of VPC attachment IDs (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].vpc_attachment_ids : {}
+}
+
+output "transit_gateway_flow_logs_log_group_name" {
+  description = "The name of the CloudWatch Log Group for Transit Gateway flow logs (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].flow_logs_log_group_name : null
+}
+
+output "transit_gateway_flow_logs_log_group_arn" {
+  description = "The ARN of the CloudWatch Log Group for Transit Gateway flow logs (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].flow_logs_log_group_arn : null
+}
+
+output "transit_gateway_view_flow_logs_command" {
+  description = "AWS CLI command to view Transit Gateway flow logs (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].view_flow_logs_command : null
+}
+
+output "transit_gateway_describe_command" {
+  description = "AWS CLI command to describe the Transit Gateway (if enabled)"
+  value       = var.tgw_enabled ? module.transit_gateway[0].describe_transit_gateway_command : null
+}

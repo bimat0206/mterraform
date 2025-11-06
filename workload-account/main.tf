@@ -311,3 +311,61 @@ module "rds_sqlserver" {
   # Tags
   tags = local.common_tags
 }
+
+# -----------------------------------------------------------------------------
+# EKS Module (optional)
+# -----------------------------------------------------------------------------
+module "eks" {
+  count  = var.eks_enabled ? 1 : 0
+  source = "../modules/eks"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = var.eks_service_name
+  identifier  = var.eks_identifier
+
+  # Network Configuration
+  vpc_id                   = var.vpc_id
+  subnet_ids               = var.private_subnet_ids
+  control_plane_subnet_ids = var.eks_control_plane_subnet_ids
+
+  # Cluster Configuration
+  kubernetes_version               = var.eks_kubernetes_version
+  cluster_endpoint_public_access   = var.eks_cluster_endpoint_public_access
+  cluster_endpoint_private_access  = var.eks_cluster_endpoint_private_access
+  cluster_endpoint_public_access_cidrs = var.eks_cluster_endpoint_public_access_cidrs
+
+  # Logging
+  enabled_cluster_log_types  = var.eks_enabled_cluster_log_types
+  cluster_log_retention_days = var.eks_cluster_log_retention_days
+
+  # Encryption
+  enable_cluster_encryption = var.eks_enable_cluster_encryption
+
+  # Node Groups
+  node_groups = var.eks_node_groups
+
+  # Add-ons
+  enable_vpc_cni_addon                 = var.eks_enable_vpc_cni_addon
+  enable_coredns_addon                 = var.eks_enable_coredns_addon
+  enable_kube_proxy_addon              = var.eks_enable_kube_proxy_addon
+  enable_ebs_csi_driver_addon          = var.eks_enable_ebs_csi_driver_addon
+  enable_aws_load_balancer_controller  = var.eks_enable_aws_load_balancer_controller
+
+  # IRSA
+  enable_irsa = var.eks_enable_irsa
+
+  # Container Insights
+  enable_container_insights           = var.eks_enable_container_insights
+  container_insights_log_retention_days = var.eks_container_insights_log_retention_days
+
+  # IAM Mapping
+  aws_auth_roles = var.eks_aws_auth_roles
+  aws_auth_users = var.eks_aws_auth_users
+  map_iam_groups = var.eks_map_iam_groups
+
+  # Tags
+  tags = local.common_tags
+}

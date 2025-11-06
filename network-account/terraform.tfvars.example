@@ -354,3 +354,89 @@ alb_enabled = false # Set to true to enable ALB creation
 #   ssm = true
 #   ssmmessages = true
 # }
+
+# -----------------------------------------------------------------------------
+# Transit Gateway Configuration
+# -----------------------------------------------------------------------------
+# tgw_enabled = true
+
+# Basic Configuration
+# tgw_description     = "Production Transit Gateway"
+# tgw_amazon_side_asn = 64512  # Private ASN for BGP
+
+# Route Table Behavior
+# tgw_default_route_table_association = "enable"  # Auto-associate attachments
+# tgw_default_route_table_propagation = "enable"  # Auto-propagate routes
+
+# Features
+# tgw_dns_support        = "enable"  # DNS resolution across VPCs
+# tgw_vpn_ecmp_support   = "enable"  # Equal-cost multipath for VPN
+# tgw_multicast_support  = "disable" # Multicast support
+
+# VPC Attachments (Example: Attach current VPC)
+# tgw_vpc_attachments = {
+#   network-vpc = {
+#     vpc_id     = "vpc-xxxxx"  # Use module.vpc.vpc_id or data source
+#     subnet_ids = ["subnet-xxxxx", "subnet-yyyyy"]  # Private subnets in multiple AZs
+#     dns_support                                     = "enable"
+#     appliance_mode_support                          = "disable"
+#     transit_gateway_default_route_table_association = true
+#     transit_gateway_default_route_table_propagation = true
+#   }
+# }
+
+# Flow Logs (CloudWatch Logs)
+# tgw_enable_flow_logs           = true
+# tgw_flow_logs_destination_type = "cloud-watch-logs"
+# tgw_flow_logs_retention_days   = 7  # 0, 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+
+# Flow Logs (S3)
+# tgw_enable_flow_logs           = true
+# tgw_flow_logs_destination_type = "s3"
+# tgw_flow_logs_s3_bucket_arn    = "arn:aws:s3:::my-tgw-logs-bucket"
+
+# CloudWatch Alarms
+# tgw_enable_cloudwatch_alarms              = true
+# tgw_alarm_sns_topic_arn                   = "arn:aws:sns:us-east-1:123456789012:tgw-alarms"
+# tgw_bytes_in_threshold                    = 1000000000  # 1 GB
+# tgw_bytes_out_threshold                   = 1000000000  # 1 GB
+# tgw_packet_drop_count_blackhole_threshold = 1000
+# tgw_packet_drop_count_no_route_threshold  = 1000
+
+# Multi-Account Resource Sharing (AWS RAM)
+# tgw_enable_resource_sharing        = true
+# tgw_ram_allow_external_principals  = false
+# tgw_ram_principals = [
+#   "arn:aws:organizations::123456789012:organization/o-xxxxx",  # Share with org
+#   # OR specific accounts:
+#   # "123456789012",
+#   # "234567890123"
+# ]
+
+# Custom Route Tables (Advanced)
+# tgw_create_custom_route_tables = true
+# tgw_custom_route_tables = {
+#   web-tier = {
+#     name = "web-tier"
+#   }
+#   app-tier = {
+#     name = "app-tier"
+#   }
+#   data-tier = {
+#     name = "data-tier"
+#   }
+# }
+
+# After deployment, view flow logs:
+# terraform output transit_gateway_view_flow_logs_command
+
+# -----------------------------------------------------------------------------
+# Transit Gateway Cost Estimation
+# -----------------------------------------------------------------------------
+# Transit Gateway: ~$36/month (hourly charge)
+# VPC Attachment:  ~$36/month per VPC
+# Data Processing: $0.02/GB
+# Flow Logs:       $0.50/GB ingestion + $0.03/GB-month storage (CloudWatch)
+#                  $0.023/GB-month (S3)
+#
+# Example: 1 TGW + 3 VPCs + 1TB data + Flow Logs ≈ $217/month

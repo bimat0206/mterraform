@@ -469,3 +469,180 @@ variable "rds_sqlserver_deletion_protection" {
   default     = false
   description = "Enable deletion protection for SQL Server"
 }
+
+# -----------------------------------------------------------------------------
+# EKS Variables
+# -----------------------------------------------------------------------------
+variable "eks_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable EKS cluster deployment"
+}
+
+variable "eks_service_name" {
+  type        = string
+  default     = "eks"
+  description = "Service name for EKS cluster"
+}
+
+variable "eks_identifier" {
+  type        = string
+  default     = "01"
+  description = "Identifier for EKS cluster"
+}
+
+variable "eks_control_plane_subnet_ids" {
+  type        = list(string)
+  default     = []
+  description = "Subnet IDs for EKS control plane (if empty, uses private_subnet_ids)"
+}
+
+variable "eks_kubernetes_version" {
+  type        = string
+  default     = "1.28"
+  description = "Kubernetes version for EKS cluster"
+}
+
+variable "eks_cluster_endpoint_public_access" {
+  type        = bool
+  default     = true
+  description = "Enable public access to EKS API endpoint"
+}
+
+variable "eks_cluster_endpoint_private_access" {
+  type        = bool
+  default     = true
+  description = "Enable private access to EKS API endpoint"
+}
+
+variable "eks_cluster_endpoint_public_access_cidrs" {
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  description = "CIDR blocks allowed to access public EKS API endpoint"
+}
+
+variable "eks_enabled_cluster_log_types" {
+  type        = list(string)
+  default     = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+  description = "EKS control plane log types to enable"
+}
+
+variable "eks_cluster_log_retention_days" {
+  type        = number
+  default     = 7
+  description = "CloudWatch log retention days for EKS control plane logs"
+}
+
+variable "eks_enable_cluster_encryption" {
+  type        = bool
+  default     = true
+  description = "Enable KMS encryption for Kubernetes secrets"
+}
+
+variable "eks_node_groups" {
+  type = map(object({
+    instance_types = list(string)
+    desired_size   = number
+    min_size       = number
+    max_size       = number
+    capacity_type  = string
+    disk_size      = number
+    labels         = map(string)
+    taints = list(object({
+      key    = string
+      value  = string
+      effect = string
+    }))
+  }))
+  default = {
+    general = {
+      instance_types = ["t3.xlarge"]
+      desired_size   = 2
+      min_size       = 1
+      max_size       = 4
+      capacity_type  = "ON_DEMAND"
+      disk_size      = 50
+      labels         = {}
+      taints         = []
+    }
+  }
+  description = "EKS node group configurations"
+}
+
+variable "eks_enable_vpc_cni_addon" {
+  type        = bool
+  default     = true
+  description = "Enable VPC CNI add-on"
+}
+
+variable "eks_enable_coredns_addon" {
+  type        = bool
+  default     = true
+  description = "Enable CoreDNS add-on"
+}
+
+variable "eks_enable_kube_proxy_addon" {
+  type        = bool
+  default     = true
+  description = "Enable kube-proxy add-on"
+}
+
+variable "eks_enable_ebs_csi_driver_addon" {
+  type        = bool
+  default     = true
+  description = "Enable EBS CSI driver add-on"
+}
+
+variable "eks_enable_aws_load_balancer_controller" {
+  type        = bool
+  default     = true
+  description = "Enable AWS Load Balancer Controller add-on"
+}
+
+variable "eks_enable_irsa" {
+  type        = bool
+  default     = true
+  description = "Enable IAM Roles for Service Accounts (IRSA)"
+}
+
+variable "eks_enable_container_insights" {
+  type        = bool
+  default     = true
+  description = "Enable CloudWatch Container Insights"
+}
+
+variable "eks_container_insights_log_retention_days" {
+  type        = number
+  default     = 7
+  description = "CloudWatch log retention days for Container Insights"
+}
+
+variable "eks_aws_auth_roles" {
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default     = []
+  description = "IAM roles to map to Kubernetes RBAC"
+}
+
+variable "eks_aws_auth_users" {
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default     = []
+  description = "IAM users to map to Kubernetes RBAC"
+}
+
+variable "eks_map_iam_groups" {
+  type = map(object({
+    iam_group_arn   = string
+    k8s_groups      = list(string)
+    k8s_username    = optional(string, "{{SessionName}}")
+  }))
+  default     = {}
+  description = "IAM groups to map to Kubernetes RBAC"
+}
