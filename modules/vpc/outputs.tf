@@ -259,43 +259,6 @@ output "vpc_flow_log_iam_role_arn" {
   value       = var.enable_flow_logs && var.flow_logs_destination_type == "cloud-watch-logs" ? aws_iam_role.flow_logs[0].arn : null
 }
 
-# -----------------------------------------------------------------------------
-# VPC Endpoints Outputs
-# -----------------------------------------------------------------------------
-output "vpc_endpoint_s3_id" {
-  description = "The ID of VPC endpoint for S3"
-  value       = var.enable_s3_endpoint ? aws_vpc_endpoint.s3[0].id : null
-}
-
-output "vpc_endpoint_s3_prefix_list_id" {
-  description = "The prefix list for the S3 VPC endpoint"
-  value       = var.enable_s3_endpoint ? aws_vpc_endpoint.s3[0].prefix_list_id : null
-}
-
-output "vpc_endpoint_dynamodb_id" {
-  description = "The ID of VPC endpoint for DynamoDB"
-  value       = var.enable_dynamodb_endpoint ? aws_vpc_endpoint.dynamodb[0].id : null
-}
-
-output "vpc_endpoint_dynamodb_prefix_list_id" {
-  description = "The prefix list for the DynamoDB VPC endpoint"
-  value       = var.enable_dynamodb_endpoint ? aws_vpc_endpoint.dynamodb[0].prefix_list_id : null
-}
-
-output "vpc_endpoint_interface_ids" {
-  description = "Map of VPC interface endpoint IDs"
-  value       = { for k, v in aws_vpc_endpoint.interface : k => v.id }
-}
-
-output "vpc_endpoint_interface_dns_entries" {
-  description = "Map of VPC interface endpoint DNS entries"
-  value       = { for k, v in aws_vpc_endpoint.interface : k => v.dns_entry }
-}
-
-output "vpc_endpoints_security_group_id" {
-  description = "The ID of the security group for VPC endpoints"
-  value       = length(local.interface_endpoints) > 0 ? aws_security_group.vpc_endpoints[0].id : null
-}
 
 # -----------------------------------------------------------------------------
 # Network ACL Outputs

@@ -200,24 +200,46 @@ variable "vpc_flow_logs_retention_days" {
 }
 
 # -----------------------------------------------------------------------------
-# VPC Endpoints Configuration
 # -----------------------------------------------------------------------------
-variable "vpc_enable_s3_endpoint" {
+# VPC Gateway Endpoints Configuration
+# -----------------------------------------------------------------------------
+variable "vpce_gateway_enabled" {
   type        = bool
   default     = false
-  description = "Enable S3 VPC Endpoint (Gateway)"
+  description = "Enable VPC Gateway Endpoints module"
 }
 
-variable "vpc_enable_dynamodb_endpoint" {
+variable "vpce_enable_s3_endpoint" {
+  type        = bool
+  default     = true
+  description = "Enable S3 VPC Gateway Endpoint (FREE)"
+}
+
+variable "vpce_enable_dynamodb_endpoint" {
   type        = bool
   default     = false
-  description = "Enable DynamoDB VPC Endpoint (Gateway)"
+  description = "Enable DynamoDB VPC Gateway Endpoint (FREE)"
 }
 
-variable "vpc_enable_interface_endpoints" {
+# -----------------------------------------------------------------------------
+# VPC Interface Endpoints Configuration
+# -----------------------------------------------------------------------------
+variable "vpce_interface_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable VPC Interface Endpoints module"
+}
+
+variable "vpce_interface_endpoints" {
   type        = map(bool)
   default     = {}
-  description = "Map of interface endpoint services to enable"
+  description = "Map of AWS services to create interface endpoints for (e.g., { ec2 = true, ssm = true })"
+}
+
+variable "vpce_private_dns_enabled" {
+  type        = bool
+  default     = true
+  description = "Enable private DNS for interface endpoints"
 }
 
 # -----------------------------------------------------------------------------
