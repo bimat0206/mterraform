@@ -347,6 +347,9 @@ module "eks" {
   # Node Groups
   node_groups = var.eks_node_groups
 
+  # Fargate Profiles
+  fargate_profiles = var.eks_fargate_profiles
+
   # Add-ons
   enable_vpc_cni_addon                 = var.eks_enable_vpc_cni_addon
   enable_coredns_addon                 = var.eks_enable_coredns_addon
@@ -365,6 +368,77 @@ module "eks" {
   aws_auth_roles = var.eks_aws_auth_roles
   aws_auth_users = var.eks_aws_auth_users
   map_iam_groups = var.eks_map_iam_groups
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# ECR Module (optional)
+# -----------------------------------------------------------------------------
+module "ecr" {
+  count  = var.ecr_enabled ? 1 : 0
+  source = "../modules/ecr"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+
+  # ECR Repository Configuration
+  repositories = var.ecr_repositories
+
+  # Image Scanning
+  enable_enhanced_scanning = var.ecr_enable_enhanced_scanning
+  scan_frequency           = var.ecr_scan_frequency
+
+  # Replication
+  enable_replication        = var.ecr_enable_replication
+  replication_configuration = var.ecr_replication_configuration
+
+  # Pull Through Cache
+  enable_pull_through_cache = var.ecr_enable_pull_through_cache
+  pull_through_cache_rules  = var.ecr_pull_through_cache_rules
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# ECS Module (optional)
+# -----------------------------------------------------------------------------
+module "ecs" {
+  count  = var.ecs_enabled ? 1 : 0
+  source = "../modules/ecs"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+
+  # Cluster Configuration
+  cluster_name              = var.ecs_cluster_name
+  enable_container_insights = var.ecs_enable_container_insights
+  cluster_settings          = var.ecs_cluster_settings
+
+  # Capacity Providers
+  enable_fargate                     = var.ecs_enable_fargate
+  enable_fargate_spot                = var.ecs_enable_fargate_spot
+  default_capacity_provider_strategy = var.ecs_default_capacity_provider_strategy
+
+  # Task Definitions
+  task_definitions = var.ecs_task_definitions
+
+  # Services
+  services = var.ecs_services
+
+  # CloudWatch Logs
+  create_cloudwatch_log_groups = var.ecs_create_cloudwatch_log_groups
+  log_retention_in_days        = var.ecs_log_retention_in_days
+
+  # Task Execution Role
+  create_task_execution_role   = var.ecs_create_task_execution_role
+  task_execution_role_policies = var.ecs_task_execution_role_policies
 
   # Tags
   tags = local.common_tags

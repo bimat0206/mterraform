@@ -1,8 +1,10 @@
 # -----------------------------------------------------------------------------
-# IAM Role for Node Groups
+# IAM Role for Fargate Profiles
 # -----------------------------------------------------------------------------
-resource "aws_iam_role" "node_group" {
-  name = "${local.name}-node-group-role"
+resource "aws_iam_role" "fargate_profile" {
+  count = length(var.fargate_profiles) > 0 ? 1 : 0
+
+  name = "${local.name}-fargate-profile-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -10,7 +12,7 @@ resource "aws_iam_role" "node_group" {
       {
         Effect = "Allow"
         Principal = {
-          Service = "ec2.amazonaws.com"
+          Service = "eks-fargate-pods.amazonaws.com"
         }
         Action = "sts:AssumeRole"
       }
@@ -20,39 +22,26 @@ resource "aws_iam_role" "node_group" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${local.name}-node-group-role"
+      Name = "${local.name}-fargate-profile-role"
     }
   )
 }
 
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEKSWorkerNodePolicy" {
-  role       = aws_iam_role.node_group.name
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+resource "aws_iam_role_policy_attachment" "fargate_profile_AmazonEKSFargatePodExecutionRolePolicy" {
+  count = length(var.fargate_profiles) > 0 ? 1 : 0
+
+  role       = aws_iam_role.fargate_profile[0].name
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
 }
 
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEKS_CNI_Policy" {
-  role       = aws_iam_role.node_group.name
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_AmazonEC2ContainerRegistryReadOnly" {
-  role       = aws_iam_role.node_group.name
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-resource "aws_iam_role_policy_attachment" "node_group_AmazonSSMManagedInstanceCore" {
-  role       = aws_iam_role.node_group.name
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-# -----------------------------------------------------------------------------
-# Secrets Manager and SSM Parameter Store Access
-# -----------------------------------------------------------------------------
-# This allows pods to retrieve secrets and parameters without IRSA
+# Inline policy for Secrets Manager and SSM Parameter Store access
+# This allows Fargate pods to retrieve secrets and parameters without IRSA
 # For production workloads, use IRSA for more granular permissions per service account
-resource "aws_iam_role_policy" "node_group_secrets" {
-  name = "${local.name}-node-group-secrets"
-  role = aws_iam_role.node_group.id
+resource "aws_iam_role_policy" "fargate_profile_secrets" {
+  count = length(var.fargate_profiles) > 0 ? 1 : 0
+
+  name = "${local.name}-fargate-profile-secrets"
+  role = aws_iam_role.fargate_profile[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -97,4 +86,36 @@ resource "aws_iam_role_policy" "node_group_secrets" {
       }
     ]
   })
+}
+
+# -----------------------------------------------------------------------------
+# Fargate Profiles
+# -----------------------------------------------------------------------------
+resource "aws_eks_fargate_profile" "this" {
+  for_each = var.fargate_profiles
+
+  cluster_name           = aws_eks_cluster.this.name
+  fargate_profile_name   = "${local.name}-${each.key}"
+  pod_execution_role_arn = aws_iam_role.fargate_profile[0].arn
+  subnet_ids             = each.value.subnet_ids
+
+  dynamic "selector" {
+    for_each = each.value.selectors
+    content {
+      namespace = selector.value.namespace
+      labels    = selector.value.labels
+    }
+  }
+
+  tags = merge(
+    local.common_tags,
+    each.value.tags,
+    {
+      Name = "${local.name}-${each.key}"
+    }
+  )
+
+  depends_on = [
+    aws_iam_role_policy_attachment.fargate_profile_AmazonEKSFargatePodExecutionRolePolicy
+  ]
 }
