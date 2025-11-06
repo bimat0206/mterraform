@@ -1,0 +1,46 @@
+# -----------------------------------------------------------------------------
+# Example Terraform variables for Network Account
+# Copy this file to dev.tfvars or prod.tfvars and customize values
+# Usage: terraform plan -var-file=dev.tfvars
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# General configuration
+# -----------------------------------------------------------------------------
+region = "ap-southeast-1" # AWS region
+
+# -----------------------------------------------------------------------------
+# Naming convention
+# -----------------------------------------------------------------------------
+org_prefix  = "tsk"  # Organization prefix (e.g., company abbreviation)
+environment = "dev"  # Environment: dev, prod, staging, etc.
+workload    = "app"  # Workload type: app, platform, data, etc.
+
+# -----------------------------------------------------------------------------
+# Tagging
+# Standard tags applied to all resources via module tags + provider default_tags
+# -----------------------------------------------------------------------------
+tags = {
+  owner       = "cloud-platform"  # Team or individual owner
+  cost-center = "CC-1234"         # Cost allocation code
+  project     = "landing-zone"    # Project name
+  environment = "dev"             # Environment (redundant with provider default_tags but useful)
+}
+
+# -----------------------------------------------------------------------------
+# VPC configuration
+# -----------------------------------------------------------------------------
+vpc_cidr_block         = "10.0.0.0/16" # VPC CIDR block
+vpc_az_count           = 2             # Number of AZs (affects subnet distribution)
+vpc_enable_nat_gateway = true          # Enable NAT Gateway for private subnets
+
+# -----------------------------------------------------------------------------
+# ACM configuration (optional)
+# Set acm_enabled = true to create ACM certificate
+# -----------------------------------------------------------------------------
+acm_enabled = false # Set to true to enable ACM certificate creation
+
+# Uncomment and configure if acm_enabled = true
+# acm_domain_name               = "example.com"
+# acm_subject_alternative_names = ["*.example.com", "www.example.com"]
+# acm_hosted_zone_id            = "Z1234567890ABC" # Route53 hosted zone ID

@@ -1,0 +1,10 @@
+# Example S3 backend configuration
+# Copy this file to backend.hcl and customize values
+# Do NOT commit backend.hcl to version control (contains sensitive info)
+# Usage: terraform init -backend-config=backend.hcl
+
+bucket         = "my-terraform-state-bucket"      # S3 bucket for state
+key            = "network-account/terraform.tfstate" # State file path in bucket
+region         = "ap-southeast-1"                 # S3 bucket region
+dynamodb_table = "terraform-state-lock"           # DynamoDB table for state locking
+encrypt        = true                             # Enable state encryption
