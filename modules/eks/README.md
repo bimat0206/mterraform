@@ -497,6 +497,228 @@ Choose instance types based on your workload:
 - **Memory Optimized**: r6i.large, r6i.xlarge, r6i.2xlarge
 - **GPU**: g4dn.xlarge, g4dn.2xlarge, p3.2xlarge
 
+## Fargate Profiles
+
+AWS Fargate for EKS provides serverless compute for containers - run pods without managing EC2 nodes.
+
+### Basic Fargate Configuration
+
+```hcl
+module "eks" {
+  source = "../modules/eks"
+
+  # ... other configuration ...
+
+  fargate_profiles = {
+    default = {
+      subnet_ids = var.private_subnet_ids  # Must use private subnets
+      selectors = [
+        {
+          namespace = "fargate-namespace"
+          labels    = {}
+        }
+      ]
+    }
+  }
+}
+```
+
+### Multiple Fargate Profiles
+
+```hcl
+fargate_profiles = {
+  # Game server workloads
+  game-server = {
+    subnet_ids = var.private_subnet_ids
+    selectors = [
+      {
+        namespace = "game-server"
+        labels = {
+          compute-type = "fargate"
+        }
+      }
+    ]
+    tags = {
+      Workload = "GameServer"
+    }
+  }
+
+  # Batch processing
+  batch = {
+    subnet_ids = var.private_subnet_ids
+    selectors = [
+      {
+        namespace = "batch-processing"
+        labels = {
+          compute-type = "fargate"
+        }
+      }
+    ]
+    tags = {
+      Workload = "Batch"
+    }
+  }
+
+  # CoreDNS on Fargate
+  kube-system = {
+    subnet_ids = var.private_subnet_ids
+    selectors = [
+      {
+        namespace = "kube-system"
+        labels = {
+          k8s-app = "kube-dns"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Deploying Pods on Fargate
+
+Pods are scheduled on Fargate based on namespace and label selectors:
+
+```bash
+# Create namespace
+kubectl create namespace fargate-namespace
+
+# Deploy application
+kubectl apply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fargate-app
+  namespace: fargate-namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fargate-app
+  template:
+    metadata:
+      labels:
+        app: fargate-app
+    spec:
+      containers:
+      - name: app
+        image: nginx:latest
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+EOF
+
+# Verify pods running on Fargate
+kubectl get pods -n fargate-namespace -o wide
+```
+
+### Fargate vs EC2 Nodes
+
+| Feature | Fargate | EC2 Nodes |
+|---------|---------|-----------|
+| **Management** | Serverless, no node management | Manage nodes, patches, scaling |
+| **Pricing** | Pay per pod (vCPU + memory) | Pay per instance |
+| **Cost at Scale** | Higher per vCPU/GB | Lower at scale |
+| **Launch Time** | 30-60 seconds | Instant (if nodes available) |
+| **Resource Isolation** | Strong (separate microVM per pod) | Shared node resources |
+| **Use Case** | Intermittent, isolated workloads | Steady-state, cost-sensitive |
+| **Instance Types** | Fixed Fargate configs | Any EC2 instance type |
+| **DaemonSets** | Not supported | Supported |
+| **GPU** | Not supported | Supported (g4dn, p3, etc.) |
+| **EBS Volumes** | 20 GB ephemeral only | Persistent EBS volumes |
+
+### When to Use Fargate
+
+✅ **Good for:**
+- Intermittent or bursty workloads
+- Isolated workloads with strict security requirements
+- Workloads with unpredictable resource needs
+- Batch processing jobs
+- Reduced operational overhead
+- Development/test environments
+- Microservices with variable load
+
+❌ **Not ideal for:**
+- Steady-state production workloads at scale
+- Cost-sensitive applications
+- GPU workloads
+- DaemonSets
+- Workloads requiring specific instance types
+- Applications needing persistent storage
+
+### Fargate Resource Configurations
+
+Fargate pods must use specific vCPU and memory combinations:
+
+**0.25 vCPU**: 0.5GB, 1GB, 2GB
+**0.5 vCPU**: 1GB - 4GB (in 1GB increments)
+**1 vCPU**: 2GB - 8GB (in 1GB increments)
+**2 vCPU**: 4GB - 16GB (in 1GB increments)
+**4 vCPU**: 8GB - 30GB (in 1GB increments)
+**8 vCPU**: 16GB - 60GB (in 4GB increments)
+**16 vCPU**: 32GB - 120GB (in 8GB increments)
+
+### Fargate Pricing Example
+
+**Scenario**: 10 pods, 1 vCPU + 2GB RAM each, running 24/7
+
+- Per pod/hour: $0.04048 (vCPU) + $0.004445 (memory) = $0.044925/hour
+- Per pod/month: $0.044925 × 730 hours = $32.80/month
+- **Total: 10 pods × $32.80 = $328/month**
+
+**vs EC2 Nodes**: 2× t3.xlarge (4 vCPU, 16GB each) = $240/month
+
+Fargate is **37% more expensive** for steady-state workloads but **no node management**.
+
+### Fargate Limitations
+
+- Must use private subnets
+- No DaemonSets support
+- No privileged containers
+- No host networking
+- Limited to 16 vCPU and 120GB RAM per pod
+- 20 GB ephemeral storage only
+- Cannot SSH into Fargate pods
+- CoreDNS may need to run on Fargate or EC2 depending on setup
+
+### Hybrid Approach
+
+Combine Fargate and EC2 for optimal cost and flexibility:
+
+```hcl
+# EC2 for steady-state workloads
+node_groups = {
+  general = {
+    instance_types = ["t3.xlarge"]
+    desired_size   = 2
+    min_size       = 2
+    max_size       = 10
+    capacity_type  = "ON_DEMAND"
+    disk_size      = 50
+    labels         = {}
+    taints         = []
+  }
+}
+
+# Fargate for burst/batch workloads
+fargate_profiles = {
+  batch = {
+    subnet_ids = var.private_subnet_ids
+    selectors = [
+      {
+        namespace = "batch-jobs"
+        labels    = {}
+      }
+    ]
+  }
+}
+```
+
+Pods in `batch-jobs` namespace run on Fargate, everything else on EC2.
+
 ## Security
 
 ### Network Security

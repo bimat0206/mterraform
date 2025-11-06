@@ -569,6 +569,19 @@ variable "eks_node_groups" {
   description = "EKS node group configurations"
 }
 
+variable "eks_fargate_profiles" {
+  type = map(object({
+    subnet_ids = list(string)
+    selectors = list(object({
+      namespace = string
+      labels    = optional(map(string), {})
+    }))
+    tags = optional(map(string), {})
+  }))
+  default     = {}
+  description = "EKS Fargate profile configurations"
+}
+
 variable "eks_enable_vpc_cni_addon" {
   type        = bool
   default     = true

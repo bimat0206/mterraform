@@ -263,3 +263,42 @@ output "addons_enabled" {
     aws_load_balancer_controller  = var.enable_aws_load_balancer_controller
   }
 }
+
+# -----------------------------------------------------------------------------
+# Fargate Profile Outputs
+# -----------------------------------------------------------------------------
+output "fargate_profile_ids" {
+  description = "Map of Fargate profile IDs"
+  value = {
+    for k, v in aws_eks_fargate_profile.this : k => v.id
+  }
+}
+
+output "fargate_profile_arns" {
+  description = "Map of Fargate profile ARNs"
+  value = {
+    for k, v in aws_eks_fargate_profile.this : k => v.arn
+  }
+}
+
+output "fargate_profile_status" {
+  description = "Map of Fargate profile statuses"
+  value = {
+    for k, v in aws_eks_fargate_profile.this : k => v.status
+  }
+}
+
+output "fargate_profile_role_arn" {
+  description = "ARN of the Fargate profile IAM role"
+  value       = length(var.fargate_profiles) > 0 ? aws_iam_role.fargate_profile[0].arn : null
+}
+
+output "fargate_profile_count" {
+  description = "Number of Fargate profiles"
+  value       = length(aws_eks_fargate_profile.this)
+}
+
+output "fargate_enabled" {
+  description = "Whether Fargate profiles are enabled"
+  value       = length(var.fargate_profiles) > 0
+}

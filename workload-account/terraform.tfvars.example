@@ -527,6 +527,95 @@ rds_mysql_enabled = false # Set to true to enable MySQL RDS
 #   }
 # }
 
+# -----------------------------------------------------------------------------
+# Fargate Profiles (Serverless Compute)
+# -----------------------------------------------------------------------------
+# Fargate profiles for serverless pod execution
+# Note: Fargate requires private subnets
+
+# Example: Basic Fargate profile for specific namespace
+# eks_fargate_profiles = {
+#   default = {
+#     subnet_ids = var.private_subnet_ids  # Must use private subnets
+#     selectors = [
+#       {
+#         namespace = "fargate-namespace"
+#         labels    = {}
+#       }
+#     ]
+#   }
+# }
+
+# Example: Multiple Fargate profiles for different workloads
+# eks_fargate_profiles = {
+#   # Fargate profile for game server workloads
+#   game-server = {
+#     subnet_ids = var.private_subnet_ids
+#     selectors = [
+#       {
+#         namespace = "game-server"
+#         labels = {
+#           compute-type = "fargate"
+#         }
+#       }
+#     ]
+#     tags = {
+#       Workload = "GameServer"
+#     }
+#   }
+#
+#   # Fargate profile for batch processing
+#   batch = {
+#     subnet_ids = var.private_subnet_ids
+#     selectors = [
+#       {
+#         namespace = "batch-processing"
+#         labels = {
+#           compute-type = "fargate"
+#         }
+#       }
+#     ]
+#     tags = {
+#       Workload = "Batch"
+#     }
+#   }
+#
+#   # Fargate profile for kube-system (CoreDNS)
+#   kube-system = {
+#     subnet_ids = var.private_subnet_ids
+#     selectors = [
+#       {
+#         namespace = "kube-system"
+#         labels = {
+#           k8s-app = "kube-dns"
+#         }
+#       }
+#     ]
+#   }
+# }
+
+# Note: Pods matching Fargate selectors will run on Fargate instead of EC2 nodes
+# To deploy pods on Fargate:
+# 1. Create namespace: kubectl create namespace fargate-namespace
+# 2. Deploy with matching labels: kubectl apply -f deployment.yaml -n fargate-namespace
+# 3. Pods will automatically run on Fargate
+
+# Fargate vs EC2 Nodes:
+# - Fargate: Serverless, pay per pod, no node management, higher cost per vCPU/GB
+# - EC2: Traditional nodes, pay per instance, lower cost at scale, more control
+#
+# Use Fargate for:
+# - Intermittent workloads
+# - Isolated workloads with specific security requirements
+# - Workloads with unpredictable resource needs
+# - Reduced operational overhead
+#
+# Use EC2 for:
+# - Steady-state workloads
+# - Cost-sensitive applications at scale
+# - Workloads requiring specific instance types (GPU, high memory, etc.)
+# - DaemonSets and node-level customizations
+
 # Add-ons (all enabled by default)
 # eks_enable_vpc_cni_addon = true
 # eks_enable_coredns_addon = true

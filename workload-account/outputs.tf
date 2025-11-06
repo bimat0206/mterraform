@@ -357,3 +357,28 @@ output "eks_view_container_insights_command" {
   description = "Command to view Container Insights logs (if enabled)"
   value       = var.eks_enabled ? module.eks[0].view_container_insights_command : null
 }
+
+output "eks_fargate_profile_ids" {
+  description = "Map of Fargate profile IDs (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].fargate_profile_ids : null
+}
+
+output "eks_fargate_profile_arns" {
+  description = "Map of Fargate profile ARNs (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].fargate_profile_arns : null
+}
+
+output "eks_fargate_profile_status" {
+  description = "Map of Fargate profile statuses (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].fargate_profile_status : null
+}
+
+output "eks_fargate_profile_role_arn" {
+  description = "ARN of Fargate profile IAM role (if enabled)"
+  value       = var.eks_enabled ? module.eks[0].fargate_profile_role_arn : null
+}
+
+output "eks_fargate_enabled" {
+  description = "Whether Fargate profiles are enabled (if EKS enabled)"
+  value       = var.eks_enabled ? module.eks[0].fargate_enabled : null
+}

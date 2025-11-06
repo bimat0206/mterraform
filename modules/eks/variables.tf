@@ -305,6 +305,22 @@ variable "cluster_security_group_additional_rules" {
 }
 
 # -----------------------------------------------------------------------------
+# Fargate Profiles
+# -----------------------------------------------------------------------------
+variable "fargate_profiles" {
+  type = map(object({
+    subnet_ids = list(string)
+    selectors = list(object({
+      namespace = string
+      labels    = optional(map(string), {})
+    }))
+    tags = optional(map(string), {})
+  }))
+  default     = {}
+  description = "Map of Fargate profile definitions"
+}
+
+# -----------------------------------------------------------------------------
 # Tags
 # -----------------------------------------------------------------------------
 variable "tags" {

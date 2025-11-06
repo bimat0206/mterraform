@@ -149,11 +149,60 @@ If migrating from aws-auth ConfigMap:
 - Add-on versions default to latest if not specified
 - Container Insights requires CloudWatch agent deployment (see outputs for commands)
 
+## [1.1.0] - 2025-01-06
+
+### Added
+- **Fargate Profile Support**: Deploy pods on AWS Fargate without managing EC2 nodes
+  - Create multiple Fargate profiles with namespace and label selectors
+  - Automatic IAM role creation for Fargate pod execution
+  - Support for mixed compute (Fargate + EC2 node groups in same cluster)
+  - Private subnet requirement validation for Fargate profiles
+  - Per-profile custom tags support
+
+### New Variables
+- `fargate_profiles`: Map of Fargate profile configurations with subnet_ids, selectors, and tags
+
+### New Outputs
+- `fargate_profile_ids`: Map of Fargate profile IDs
+- `fargate_profile_arns`: Map of Fargate profile ARNs
+- `fargate_profile_status`: Map of Fargate profile statuses
+- `fargate_profile_role_arn`: ARN of Fargate profile IAM role
+- `fargate_enabled`: Whether Fargate profiles are enabled
+
+### File Organization
+- **fargate.tf**: Fargate profile IAM role and profile resources
+
+### Features
+- **Serverless Kubernetes**: Run pods without managing EC2 instances
+- **Automatic Scaling**: Fargate automatically scales based on pod requirements
+- **Hybrid Compute**: Combine Fargate and EC2 node groups in the same cluster
+- **Namespace Isolation**: Target specific namespaces for Fargate deployment
+- **Label-based Scheduling**: Use Kubernetes labels to schedule pods on Fargate
+
+### Use Cases
+- Batch processing and cron jobs
+- Development and testing workloads
+- Bursty and unpredictable workloads
+- Multi-tenant applications with namespace isolation
+
+### Limitations
+- Fargate profiles must use private subnets only
+- No DaemonSets support on Fargate
+- No privileged containers or HostNetwork
+- No GPU workloads
+- Limited to specific vCPU/memory combinations
+- Higher per-pod cost compared to EC2 at scale
+
+### Notes
+- Fargate profiles require at least one selector with namespace
+- Pods must match selector criteria to run on Fargate
+- Fargate uses the pod execution IAM role for pulling images and logs
+- Mix Fargate and EC2 node groups for optimal cost and flexibility
+
 ## [Unreleased]
 
 ### Planned
 - Cluster autoscaler configuration
-- Fargate profile support
 - Pod identity associations
 - Advanced networking (IPv6, prefix delegation)
 - Blue/green deployment support

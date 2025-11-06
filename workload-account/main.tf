@@ -347,6 +347,9 @@ module "eks" {
   # Node Groups
   node_groups = var.eks_node_groups
 
+  # Fargate Profiles
+  fargate_profiles = var.eks_fargate_profiles
+
   # Add-ons
   enable_vpc_cni_addon                 = var.eks_enable_vpc_cni_addon
   enable_coredns_addon                 = var.eks_enable_coredns_addon
