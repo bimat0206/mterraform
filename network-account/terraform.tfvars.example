@@ -28,14 +28,156 @@ tags = {
 }
 
 # -----------------------------------------------------------------------------
-# VPC configuration
+# VPC Configuration - Basic
 # -----------------------------------------------------------------------------
-vpc_cidr_block         = "10.0.0.0/16" # VPC CIDR block
-vpc_az_count           = 2             # Number of AZs (affects subnet distribution)
-vpc_enable_nat_gateway = true          # Enable NAT Gateway for private subnets
+vpc_cidr_block = "10.0.0.0/16" # Primary VPC CIDR block
+vpc_az_count   = 2              # Number of Availability Zones (1-6)
 
 # -----------------------------------------------------------------------------
-# ACM configuration (optional)
+# VPC Configuration - Advanced (Optional)
+# Uncomment to enable additional VPC features
+# -----------------------------------------------------------------------------
+
+# Secondary CIDR blocks (for VPC expansion)
+# vpc_secondary_cidr_blocks = ["10.1.0.0/16", "10.2.0.0/16"]
+
+# IPv6 support
+# vpc_enable_ipv6 = true
+
+# Instance tenancy (default or dedicated)
+# vpc_instance_tenancy = "default"
+
+# DNS settings
+# vpc_enable_dns_hostnames = true
+# vpc_enable_dns_support   = true
+
+# -----------------------------------------------------------------------------
+# Subnet Configuration
+# -----------------------------------------------------------------------------
+
+# Database subnets (creates additional isolated subnets)
+# vpc_create_database_subnets      = true
+# vpc_create_database_subnet_group = true  # Auto-create RDS subnet group
+
+# Customize subnet naming
+# vpc_public_subnet_suffix   = "public"
+# vpc_private_subnet_suffix  = "private"
+# vpc_database_subnet_suffix = "database"
+
+# Public IP assignment
+# vpc_map_public_ip_on_launch = true
+
+# -----------------------------------------------------------------------------
+# NAT Gateway Configuration
+# -----------------------------------------------------------------------------
+vpc_enable_nat_gateway = true # Enable NAT Gateway for private subnet internet access
+
+# NAT Gateway deployment strategy (choose one):
+# 1. Single NAT Gateway (Cost-optimized for dev/test)
+# vpc_single_nat_gateway = true  # ~$32/month
+# vpc_one_nat_gateway_per_az = false
+
+# 2. NAT Gateway per AZ (High availability for production)
+# vpc_single_nat_gateway = false  # ~$96/month for 3 AZs
+# vpc_one_nat_gateway_per_az = true
+
+# 3. No NAT Gateway (Fully private VPC with VPC endpoints only)
+# vpc_enable_nat_gateway = false
+
+# -----------------------------------------------------------------------------
+# VPN Gateway Configuration
+# -----------------------------------------------------------------------------
+# vpc_enable_vpn_gateway = true
+# vpc_vpn_gateway_az     = null  # Specific AZ or null for AWS-selected
+# vpc_propagate_vpn_routes_to_private_route_tables = true
+# vpc_propagate_vpn_routes_to_public_route_tables  = false
+
+# -----------------------------------------------------------------------------
+# VPC Flow Logs Configuration
+# -----------------------------------------------------------------------------
+# vpc_enable_flow_logs = true
+# vpc_flow_logs_destination_type = "cloud-watch-logs"  # or "s3"
+# vpc_flow_logs_destination_arn  = ""  # Leave empty for auto-created CloudWatch log group
+# vpc_flow_logs_traffic_type     = "ALL"  # ACCEPT, REJECT, or ALL
+# vpc_flow_logs_retention_days   = 7  # CloudWatch log retention
+
+# -----------------------------------------------------------------------------
+# VPC Endpoints Configuration
+# -----------------------------------------------------------------------------
+
+# Gateway Endpoints (FREE - recommended for S3 and DynamoDB)
+# vpc_enable_s3_endpoint       = true
+# vpc_enable_dynamodb_endpoint = true
+
+# Interface Endpoints (~$7.20/month each + data transfer)
+# vpc_enable_interface_endpoints = {
+#   ec2         = true  # EC2 API
+#   ssm         = true  # Systems Manager
+#   ssmmessages = true  # SSM Session Manager
+#   ec2messages = true  # SSM for EC2
+#   kms         = true  # KMS
+#   logs        = true  # CloudWatch Logs
+#   sts         = true  # STS
+#   secretsmanager = true  # Secrets Manager
+#   ecr.api     = true  # ECR API
+#   ecr.dkr     = true  # ECR Docker
+# }
+
+# -----------------------------------------------------------------------------
+# DHCP Options Configuration
+# -----------------------------------------------------------------------------
+# vpc_enable_dhcp_options              = true
+# vpc_dhcp_options_domain_name         = "example.internal"
+# vpc_dhcp_options_domain_name_servers = ["AmazonProvidedDNS"]
+# vpc_dhcp_options_ntp_servers         = ["169.254.169.123"]
+# vpc_dhcp_options_netbios_name_servers = []
+# vpc_dhcp_options_netbios_node_type   = 2
+
+# -----------------------------------------------------------------------------
+# Network ACL Configuration
+# -----------------------------------------------------------------------------
+# vpc_public_dedicated_network_acl  = true  # Create dedicated NACL for public subnets
+# vpc_private_dedicated_network_acl = true  # Create dedicated NACL for private subnets
+
+# Manage default NACL (lock it down)
+# vpc_manage_default_network_acl = true
+# vpc_default_network_acl_ingress = [
+#   {
+#     rule_no    = 100
+#     action     = "deny"
+#     protocol   = "-1"
+#     cidr_block = "0.0.0.0/0"
+#     from_port  = 0
+#     to_port    = 0
+#   }
+# ]
+# vpc_default_network_acl_egress = [
+#   {
+#     rule_no    = 100
+#     action     = "deny"
+#     protocol   = "-1"
+#     cidr_block = "0.0.0.0/0"
+#     from_port  = 0
+#     to_port    = 0
+#   }
+# ]
+
+# -----------------------------------------------------------------------------
+# Default Security Group Configuration
+# -----------------------------------------------------------------------------
+# Lock down default security group (security best practice)
+# vpc_manage_default_security_group = true
+# vpc_default_security_group_ingress = []  # No ingress
+# vpc_default_security_group_egress  = []  # No egress
+
+# -----------------------------------------------------------------------------
+# Default Route Table Configuration
+# -----------------------------------------------------------------------------
+# vpc_manage_default_route_table = true
+# vpc_default_route_table_routes = []
+
+# -----------------------------------------------------------------------------
+# ACM Configuration (Optional)
 # Set acm_enabled = true to create ACM certificate
 # -----------------------------------------------------------------------------
 acm_enabled = false # Set to true to enable ACM certificate creation
@@ -44,3 +186,48 @@ acm_enabled = false # Set to true to enable ACM certificate creation
 # acm_domain_name               = "example.com"
 # acm_subject_alternative_names = ["*.example.com", "www.example.com"]
 # acm_hosted_zone_id            = "Z1234567890ABC" # Route53 hosted zone ID
+
+# -----------------------------------------------------------------------------
+# Example Configurations by Use Case
+# -----------------------------------------------------------------------------
+
+# Use Case 1: Development Environment (Cost-Optimized)
+# - Single NAT Gateway
+# - No VPC Endpoints
+# - No Flow Logs
+# vpc_enable_nat_gateway = true
+# vpc_single_nat_gateway = true
+# vpc_enable_flow_logs   = false
+
+# Use Case 2: Production Environment (High Availability)
+# - NAT Gateway per AZ
+# - VPC Endpoints enabled
+# - Flow Logs enabled
+# - Database subnets
+# vpc_az_count = 3
+# vpc_enable_nat_gateway      = true
+# vpc_single_nat_gateway      = false
+# vpc_one_nat_gateway_per_az  = true
+# vpc_enable_flow_logs        = true
+# vpc_flow_logs_retention_days = 30
+# vpc_enable_s3_endpoint       = true
+# vpc_enable_dynamodb_endpoint = true
+# vpc_create_database_subnets  = true
+# vpc_create_database_subnet_group = true
+# vpc_enable_interface_endpoints = {
+#   ec2 = true
+#   ssm = true
+# }
+
+# Use Case 3: Private VPC (No Internet Access)
+# - No NAT Gateway
+# - VPC Endpoints for AWS services
+# - VPN Gateway for on-premises
+# vpc_enable_nat_gateway = false
+# vpc_enable_vpn_gateway = true
+# vpc_enable_s3_endpoint = true
+# vpc_enable_interface_endpoints = {
+#   ec2 = true
+#   ssm = true
+#   ssmmessages = true
+# }
