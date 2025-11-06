@@ -400,3 +400,72 @@ variable "rds_mysql_deletion_protection" {
   default     = false
   description = "Enable deletion protection for MySQL"
 }
+
+# -----------------------------------------------------------------------------
+# RDS SQL Server Configuration
+# -----------------------------------------------------------------------------
+variable "rds_sqlserver_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable SQL Server RDS instance"
+}
+
+variable "rds_sqlserver_engine" {
+  type        = string
+  default     = "sqlserver-se"
+  description = "SQL Server engine type (sqlserver-ee, sqlserver-se, sqlserver-ex, sqlserver-web)"
+}
+
+variable "rds_sqlserver_instance_class" {
+  type        = string
+  default     = "db.t3.xlarge"
+  description = "Instance class for SQL Server RDS (minimum db.t3.xlarge for Standard/Enterprise)"
+}
+
+variable "rds_sqlserver_engine_version" {
+  type        = string
+  default     = "15.00.4335.1.v1"
+  description = "SQL Server engine version (15.00 for SQL Server 2019, 16.00 for SQL Server 2022)"
+}
+
+variable "rds_sqlserver_allocated_storage" {
+  type        = number
+  default     = 100
+  description = "Allocated storage in GB for SQL Server"
+}
+
+variable "rds_sqlserver_database_name" {
+  type        = string
+  default     = ""
+  description = "Initial database name for SQL Server (optional)"
+}
+
+variable "rds_sqlserver_master_username" {
+  type        = string
+  default     = "sqladmin"
+  description = "Master username for SQL Server (cannot be admin, administrator, sa, or root)"
+}
+
+variable "rds_sqlserver_multi_az" {
+  type        = bool
+  default     = false
+  description = "Enable Multi-AZ for SQL Server (not supported for Express/Web editions)"
+}
+
+variable "rds_sqlserver_backup_retention_period" {
+  type        = number
+  default     = 7
+  description = "Backup retention period in days for SQL Server"
+}
+
+variable "rds_sqlserver_allowed_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "CIDR blocks allowed to access SQL Server RDS"
+}
+
+variable "rds_sqlserver_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Enable deletion protection for SQL Server"
+}

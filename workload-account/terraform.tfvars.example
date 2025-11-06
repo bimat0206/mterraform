@@ -365,7 +365,36 @@ rds_mysql_enabled = false # Set to true to enable MySQL RDS
 # rds_mysql_deletion_protection = false  # Enable for production
 
 # After deployment, retrieve password:
-# terraform output rds_mysql_retrieve_password_command
+# terraform output rds_mysql_retrieve_connection_info_command
+
+# -----------------------------------------------------------------------------
+# RDS SQL Server Configuration
+# -----------------------------------------------------------------------------
+# rds_sqlserver_enabled = true
+
+# Edition Selection
+# rds_sqlserver_engine = "sqlserver-se"  # sqlserver-ee (Enterprise), sqlserver-se (Standard),
+#                                         # sqlserver-ex (Express), sqlserver-web (Web)
+
+# Basic SQL Server Configuration
+# rds_sqlserver_instance_class    = "db.t3.xlarge"        # Minimum for SE/EE
+# rds_sqlserver_engine_version    = "15.00.4335.1.v1"     # 15.00 (2019), 16.00 (2022)
+# rds_sqlserver_allocated_storage = 100                   # GB (minimum 20)
+# rds_sqlserver_database_name     = "myapp"               # Optional initial database
+# rds_sqlserver_master_username   = "sqladmin"            # Cannot be admin, sa, root
+
+# High Availability
+# rds_sqlserver_multi_az = false  # Not supported for Express/Web editions
+
+# Backup
+# rds_sqlserver_backup_retention_period = 7  # Days (0-35)
+
+# Security
+# rds_sqlserver_allowed_cidr_blocks = ["10.0.0.0/8"]  # VPC CIDR
+# rds_sqlserver_deletion_protection = false  # Enable for production
+
+# After deployment, retrieve connection info:
+# terraform output rds_sqlserver_retrieve_connection_info_command
 
 # -----------------------------------------------------------------------------
 # Example: Full Application Stack
@@ -380,17 +409,33 @@ rds_mysql_enabled = false # Set to true to enable MySQL RDS
 # rds_mysql_enabled   = true
 # rds_mysql_allowed_cidr_blocks = ["10.0.0.0/8"]
 
+# Windows app server + SQL Server database
+# ec2_windows_enabled    = true
+# rds_sqlserver_enabled  = true
+# rds_sqlserver_engine   = "sqlserver-ex"  # Use Express for dev/test
+# rds_sqlserver_allowed_cidr_blocks = ["10.0.0.0/8"]
+
 # -----------------------------------------------------------------------------
 # RDS Cost Estimation
 # -----------------------------------------------------------------------------
+# PostgreSQL/MySQL Pricing:
 # db.t3.micro:  ~$15/month (Single-AZ), ~$30/month (Multi-AZ)
 # db.t3.small:  ~$30/month (Single-AZ), ~$60/month (Multi-AZ)
 # db.t3.medium: ~$61/month (Single-AZ), ~$122/month (Multi-AZ)
 # db.r6g.large: ~$146/month (Single-AZ), ~$292/month (Multi-AZ)
-# 
+#
+# SQL Server Pricing (license-included):
+# Express:     ~$50/month (db.t3.xlarge, Single-AZ)
+# Web:         ~$100/month (db.t3.xlarge, Single-AZ)
+# Standard:    ~$200/month (db.t3.xlarge, Single-AZ), ~$400/month (Multi-AZ)
+# Enterprise:  ~$1,000+/month (depends on instance size)
+#
 # Storage (gp3): ~$0.092/GB-month
 # Backup Storage: $0.095/GB-month (after free tier)
 # Performance Insights: Free (7 days retention)
 # Enhanced Monitoring: Included in RDS price
 #
-# Example: db.t3.micro + 20GB + Multi-AZ + Backups ≈ $32/month
+# Examples:
+# - PostgreSQL: db.t3.micro + 20GB + Multi-AZ + Backups ≈ $32/month
+# - SQL Server Express: db.t3.xlarge + 100GB ≈ $60/month
+# - SQL Server Standard: db.t3.xlarge + 100GB + Multi-AZ ≈ $410/month
