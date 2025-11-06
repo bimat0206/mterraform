@@ -51,6 +51,64 @@ variable "public_subnet_ids" {
 }
 
 # -----------------------------------------------------------------------------
+# Key Pair Configuration
+# -----------------------------------------------------------------------------
+variable "create_keypair_linux" {
+  type        = bool
+  default     = false
+  description = "Create EC2 key pair for Linux instances"
+}
+
+variable "create_keypair_windows" {
+  type        = bool
+  default     = false
+  description = "Create EC2 key pair for Windows instances"
+}
+
+variable "keypair_algorithm" {
+  type        = string
+  default     = "RSA"
+  description = "Algorithm for key pair generation (RSA, ECDSA, ED25519)"
+}
+
+variable "keypair_rsa_bits" {
+  type        = number
+  default     = 4096
+  description = "RSA key size (2048 or 4096)"
+}
+
+variable "keypair_store_in_secretsmanager" {
+  type        = bool
+  default     = true
+  description = "Store private keys in AWS Secrets Manager"
+}
+
+variable "keypair_secret_recovery_window" {
+  type        = number
+  default     = 30
+  description = "Recovery window for deleted secrets (7-30 days)"
+}
+
+variable "keypair_kms_key_id" {
+  type        = string
+  default     = ""
+  description = "Custom KMS key ID for secret encryption (empty = AWS managed key)"
+}
+
+# Use existing key pair names instead of creating new ones
+variable "ec2_linux_existing_key_name" {
+  type        = string
+  default     = ""
+  description = "Existing key pair name for Linux instance (if not creating new keypair)"
+}
+
+variable "ec2_windows_existing_key_name" {
+  type        = string
+  default     = ""
+  description = "Existing key pair name for Windows instance (if not creating new keypair)"
+}
+
+# -----------------------------------------------------------------------------
 # EC2 Linux Configuration
 # -----------------------------------------------------------------------------
 variable "ec2_linux_enabled" {

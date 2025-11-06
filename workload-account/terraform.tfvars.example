@@ -47,9 +47,31 @@ public_subnet_ids  = ["subnet-xyz", "subnet-uvw"] # Public subnet IDs
 # Then reference: data.terraform_remote_state.network.outputs.vpc_id
 
 # -----------------------------------------------------------------------------
+# Key Pair Configuration
+# Automatically create and store key pairs in Secrets Manager
+# Cost: $0.40 per secret per month
+# -----------------------------------------------------------------------------
+
+# Option 1: Create new key pairs with Secrets Manager (RECOMMENDED)
+# create_keypair_linux   = true
+# create_keypair_windows = true
+# keypair_algorithm      = "RSA"  # RSA, ECDSA, or ED25519
+# keypair_rsa_bits       = 4096   # 2048 or 4096
+# keypair_store_in_secretsmanager = true
+# keypair_secret_recovery_window  = 30  # 7-30 days
+
+# Optional: Use custom KMS key for secret encryption
+# keypair_kms_key_id = "arn:aws:kms:region:account:key/12345678-..."
+
+# Option 2: Use existing key pairs
+# ec2_linux_existing_key_name   = "my-existing-linux-key"
+# ec2_windows_existing_key_name = "my-existing-windows-key"
+
+# -----------------------------------------------------------------------------
 # EC2 Linux Configuration
 # Set ec2_linux_enabled = true to create Linux EC2 instance
 # Cost: t3.micro ~$8.47/month (Free tier eligible)
+# Key Pair Cost: $0.40/month (if created with keypair module)
 # -----------------------------------------------------------------------------
 ec2_linux_enabled = false # Set to true to enable Linux EC2 instance
 
@@ -155,7 +177,17 @@ ec2_windows_enabled = false # Set to true to enable Windows EC2 instance
 # Example Configurations by Use Case
 # -----------------------------------------------------------------------------
 
-# Use Case 1: Linux Web Server (Public)
+# Use Case 1: Linux with Auto-Generated Key Pair (RECOMMENDED)
+# create_keypair_linux    = true
+# ec2_linux_enabled       = true
+# ec2_linux_instance_type = "t3.micro"
+# ec2_linux_associate_public_ip = false
+# ec2_linux_create_iam_profile = true
+# After deployment, retrieve key:
+# aws secretsmanager get-secret-value --secret-id tsk-dev-app-linux-01-private-key \
+#   --query SecretString --output text | jq -r '.private_key' > keypair.pem && chmod 400 keypair.pem
+
+# Use Case 2: Linux Web Server (Public)
 # ec2_linux_enabled           = true
 # ec2_linux_instance_type     = "t3.small"
 # ec2_linux_key_name          = "my-keypair"
