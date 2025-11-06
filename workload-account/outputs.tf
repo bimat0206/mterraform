@@ -508,3 +508,41 @@ output "ecs_service_info" {
   description = "Detailed service information (if enabled)"
   value       = var.ecs_enabled ? module.ecs[0].service_info : null
 }
+
+# ECS ALB and Security Group Outputs
+output "ecs_task_security_group_id" {
+  description = "ECS task security group ID (if enabled)"
+  value       = var.ecs_enabled ? aws_security_group.ecs_tasks[0].id : null
+}
+
+output "ecs_alb_security_group_id" {
+  description = "ECS ALB security group ID (if ALB enabled)"
+  value       = var.ecs_enabled && var.ecs_alb_enabled ? aws_security_group.ecs_alb[0].id : null
+}
+
+output "ecs_alb_arn" {
+  description = "ECS ALB ARN (if ALB enabled)"
+  value       = var.ecs_enabled && var.ecs_alb_enabled ? aws_lb.ecs[0].arn : null
+}
+
+output "ecs_alb_dns_name" {
+  description = "ECS ALB DNS name (if ALB enabled)"
+  value       = var.ecs_enabled && var.ecs_alb_enabled ? aws_lb.ecs[0].dns_name : null
+}
+
+output "ecs_alb_zone_id" {
+  description = "ECS ALB zone ID (if ALB enabled)"
+  value       = var.ecs_enabled && var.ecs_alb_enabled ? aws_lb.ecs[0].zone_id : null
+}
+
+output "ecs_target_group_arns" {
+  description = "Map of ECS target group ARNs (if ALB enabled)"
+  value = var.ecs_enabled && var.ecs_alb_enabled ? {
+    for k, v in aws_lb_target_group.ecs : k => v.arn
+  } : null
+}
+
+output "ecs_alb_listener_arn" {
+  description = "ECS ALB HTTP listener ARN (if ALB enabled)"
+  value       = var.ecs_enabled && var.ecs_alb_enabled ? aws_lb_listener.ecs_http[0].arn : null
+}

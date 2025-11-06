@@ -869,7 +869,70 @@ ecs_enabled = false
 #   }
 # ]
 
-# Task Definitions
+# -----------------------------------------------------------------------------
+# ECS ALB Configuration (optional - created in main.tf)
+# -----------------------------------------------------------------------------
+# Enable ALB for ECS services (ALB, target groups, listeners created automatically)
+# ecs_alb_enabled = true
+# ecs_alb_internal = false  # false = internet-facing, true = internal
+# ecs_alb_ingress_cidrs = ["0.0.0.0/0"]  # CIDRs allowed to access ALB
+# ecs_alb_enable_deletion_protection = false
+# ecs_alb_redirect_http_to_https = false
+
+# ALB Target Groups (dynamically created in main.tf)
+# ecs_alb_target_groups = {
+#   web-app = {
+#     port     = 8080
+#     protocol = "HTTP"
+#     health_check = {
+#       path                = "/health"
+#       healthy_threshold   = 3
+#       unhealthy_threshold = 3
+#       timeout             = 5
+#       interval            = 30
+#       matcher             = "200"
+#     }
+#     deregistration_delay = 30
+#   }
+#   api = {
+#     port     = 3000
+#     protocol = "HTTP"
+#     health_check = {
+#       path = "/api/health"
+#     }
+#   }
+# }
+
+# ALB Listener Rules (routing to target groups)
+# ecs_alb_listener_rules = {
+#   web-app-rule = {
+#     priority         = 100
+#     target_group_key = "web-app"
+#     path_pattern     = "/*"
+#   }
+#   api-rule = {
+#     priority         = 200
+#     target_group_key = "api"
+#     path_pattern     = "/api/*"
+#   }
+# }
+
+# Additional Security Group Rules for ECS Tasks (optional)
+# ecs_additional_security_group_rules = [
+#   {
+#     from_port   = 8080
+#     to_port     = 8080
+#     protocol    = "tcp"
+#     cidr_blocks = ["10.0.0.0/8"]
+#     description = "Allow internal traffic on port 8080"
+#   }
+# ]
+
+# -----------------------------------------------------------------------------
+# ECS Task Definitions
+# -----------------------------------------------------------------------------
+# Use "ecr://<repository-key>" to reference ECR repositories dynamically
+# The image URL is automatically resolved from the ECR module output
 # ecs_task_definitions = {
 #   web-app = {
 #     cpu    = "256"   # 0.25 vCPU
@@ -878,7 +941,9 @@ ecs_enabled = false
 #     container_definitions = [
 #       {
 #         name  = "web"
-#         image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/tsk-dev-workload-backend:latest"
+#         # Dynamic ECR reference - automatically resolved to full ECR URL
+#         image = "ecr://backend"  # References ECR repository "backend"
+#         image_tag = "latest"     # Optional, defaults to "latest"
 #
 #         portMappings = [
 #           {
@@ -892,10 +957,11 @@ ecs_enabled = false
 #           { name = "PORT", value = "8080" }
 #         ]
 #
+#         # Secrets Manager references (resolved by ECS task execution role)
 #         secrets = [
 #           {
 #             name      = "DATABASE_URL"
-#             valueFrom = "arn:aws:secretsmanager:us-east-1:123456789012:secret:db-url"
+#             valueFrom = "arn:aws:secretsmanager:${var.region}:${var.account_id}:secret:db-url"
 #           }
 #         ]
 #
@@ -927,7 +993,7 @@ ecs_enabled = false
 #     container_definitions = [
 #       {
 #         name  = "api"
-#         image = "myapi:latest"
+#         image = "ecr://api"  # References ECR repository "api"
 #         portMappings = [{ containerPort = 3000 }]
 #       },
 #       {
@@ -939,23 +1005,20 @@ ecs_enabled = false
 #   }
 # }
 
+# -----------------------------------------------------------------------------
 # ECS Services
+# -----------------------------------------------------------------------------
+# Security groups and subnets are dynamically assigned in main.tf
+# No need to specify them here - they're automatically created and referenced
 # ecs_services = {
 #   web-app = {
 #     task_definition_key = "web-app"
 #     desired_count       = 2
 #
-#     subnets         = var.private_subnet_ids
-#     security_groups = ["sg-1234567890abcdef0"]
-#
-#     # ALB Integration
-#     load_balancers = [
-#       {
-#         target_group_arn = "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-tg/..."
-#         container_name   = "web"
-#         container_port   = 8080
-#       }
-#     ]
+#     # ALB Integration (simplified - just specify target group and container)
+#     target_group_key = "web-app"  # References target group created above
+#     container_name   = "web"
+#     container_port   = 8080
 #
 #     health_check_grace_period_seconds = 60
 #
@@ -980,23 +1043,46 @@ ecs_enabled = false
 #       ]
 #     }
 #   }
+#
+#   api = {
+#     task_definition_key = "api-with-sidecar"
+#     desired_count       = 3
+#     target_group_key    = "api"
+#     container_name      = "api"
+#     container_port      = 3000
+#   }
 # }
 
 # CloudWatch Logs
 # ecs_create_cloudwatch_log_groups = true
 # ecs_log_retention_in_days        = 7
 
+# -----------------------------------------------------------------------------
+# Dynamic Resource Resolution
+# -----------------------------------------------------------------------------
+# The workload-account main.tf automatically:
+# 1. Creates security groups for ECS tasks and ALB
+# 2. Creates ALB with target groups and listeners
+# 3. Resolves ECR image URLs from ecr:// references
+# 4. Assigns private subnets to ECS tasks
+# 5. Configures load balancer integration
+#
+# No hardcoded ARNs or IDs needed! Everything is dynamically referenced.
+
 # After deployment:
-# 1. List services:
+# 1. Get ALB DNS name:
+#    terraform output ecs_alb_dns_name
+#
+# 2. List services:
 #    terraform output ecs_commands
 #
-# 2. View logs:
+# 3. View logs:
 #    aws logs tail /ecs/<cluster-name>/<task-key> --follow
 #
-# 3. Update service (force new deployment):
+# 4. Update service (force new deployment):
 #    aws ecs update-service --cluster <cluster> --service <service> --force-new-deployment
 #
-# 4. Execute command in container (if enable_execute_command = true):
+# 5. Execute command in container (if enable_execute_command = true):
 #    aws ecs execute-command --cluster <cluster> --task <task-id> \
 #      --container <container> --interactive --command "/bin/sh"
 

@@ -407,6 +407,273 @@ module "ecr" {
 # -----------------------------------------------------------------------------
 # ECS Module (optional)
 # -----------------------------------------------------------------------------
+
+# ECS Task Security Group
+resource "aws_security_group" "ecs_tasks" {
+  count = var.ecs_enabled ? 1 : 0
+
+  name_prefix = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-ecs-tasks-"
+  description = "Security group for ECS tasks"
+  vpc_id      = var.vpc_id
+
+  # Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  # Allow inbound from ALB security group (if ALB is enabled)
+  dynamic "ingress" {
+    for_each = var.ecs_alb_enabled ? [1] : []
+    content {
+      from_port       = 0
+      to_port         = 65535
+      protocol        = "tcp"
+      security_groups = [aws_security_group.ecs_alb[0].id]
+      description     = "Allow traffic from ALB"
+    }
+  }
+
+  # Additional custom ingress rules
+  dynamic "ingress" {
+    for_each = var.ecs_additional_security_group_rules
+    content {
+      from_port   = ingress.value.from_port
+      to_port     = ingress.value.to_port
+      protocol    = ingress.value.protocol
+      cidr_blocks = lookup(ingress.value, "cidr_blocks", null)
+      security_groups = lookup(ingress.value, "security_groups", null)
+      description = lookup(ingress.value, "description", "")
+    }
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-ecs-tasks"
+    }
+  )
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# ALB Security Group for ECS (optional)
+resource "aws_security_group" "ecs_alb" {
+  count = var.ecs_enabled && var.ecs_alb_enabled ? 1 : 0
+
+  name_prefix = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-ecs-alb-"
+  description = "Security group for ECS ALB"
+  vpc_id      = var.vpc_id
+
+  # Allow HTTP
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = var.ecs_alb_ingress_cidrs
+    description = "Allow HTTP from specified CIDRs"
+  }
+
+  # Allow HTTPS
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.ecs_alb_ingress_cidrs
+    description = "Allow HTTPS from specified CIDRs"
+  }
+
+  # Allow all outbound
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-ecs-alb"
+    }
+  )
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Application Load Balancer for ECS (optional)
+resource "aws_lb" "ecs" {
+  count = var.ecs_enabled && var.ecs_alb_enabled ? 1 : 0
+
+  name               = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-ecs"
+  internal           = var.ecs_alb_internal
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_alb[0].id]
+  subnets            = var.ecs_alb_internal ? var.private_subnet_ids : var.public_subnet_ids
+
+  enable_deletion_protection = var.ecs_alb_enable_deletion_protection
+  enable_http2              = true
+  enable_cross_zone_load_balancing = true
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-ecs"
+    }
+  )
+}
+
+# ALB Target Groups for ECS Services
+resource "aws_lb_target_group" "ecs" {
+  for_each = var.ecs_enabled && var.ecs_alb_enabled ? var.ecs_alb_target_groups : {}
+
+  name     = "${local.naming.org_prefix}-${local.naming.environment}-${substr(each.key, 0, 20)}"
+  port     = each.value.port
+  protocol = each.value.protocol
+  vpc_id   = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = lookup(each.value.health_check, "healthy_threshold", 3)
+    unhealthy_threshold = lookup(each.value.health_check, "unhealthy_threshold", 3)
+    timeout             = lookup(each.value.health_check, "timeout", 5)
+    interval            = lookup(each.value.health_check, "interval", 30)
+    path                = lookup(each.value.health_check, "path", "/health")
+    matcher             = lookup(each.value.health_check, "matcher", "200")
+    protocol            = each.value.protocol
+  }
+
+  deregistration_delay = lookup(each.value, "deregistration_delay", 30)
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.naming.org_prefix}-${local.naming.environment}-${each.key}"
+    }
+  )
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# ALB Listeners
+resource "aws_lb_listener" "ecs_http" {
+  count = var.ecs_enabled && var.ecs_alb_enabled ? 1 : 0
+
+  load_balancer_arn = aws_lb.ecs[0].arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = var.ecs_alb_redirect_http_to_https ? "redirect" : "fixed-response"
+
+    dynamic "redirect" {
+      for_each = var.ecs_alb_redirect_http_to_https ? [1] : []
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+
+    dynamic "fixed_response" {
+      for_each = var.ecs_alb_redirect_http_to_https ? [] : [1]
+      content {
+        content_type = "text/plain"
+        message_body = "Not Found"
+        status_code  = "404"
+      }
+    }
+  }
+}
+
+# ALB Listener Rules for routing to target groups
+resource "aws_lb_listener_rule" "ecs" {
+  for_each = var.ecs_enabled && var.ecs_alb_enabled ? var.ecs_alb_listener_rules : {}
+
+  listener_arn = aws_lb_listener.ecs_http[0].arn
+  priority     = each.value.priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs[each.value.target_group_key].arn
+  }
+
+  dynamic "condition" {
+    for_each = lookup(each.value, "path_pattern", null) != null ? [1] : []
+    content {
+      path_pattern {
+        values = [each.value.path_pattern]
+      }
+    }
+  }
+
+  dynamic "condition" {
+    for_each = lookup(each.value, "host_header", null) != null ? [1] : []
+    content {
+      host_header {
+        values = [each.value.host_header]
+      }
+    }
+  }
+}
+
+# Build ECS task definitions with dynamic ECR image references
+locals {
+  # Build task definitions with ECR repository URLs if ECR is enabled
+  ecs_task_definitions_with_ecr = var.ecs_enabled && var.ecr_enabled ? {
+    for task_key, task_def in var.ecs_task_definitions : task_key => merge(
+      task_def,
+      {
+        container_definitions = [
+          for container in task_def.container_definitions : merge(
+            container,
+            {
+              # Replace image placeholder with actual ECR URL if it references ECR
+              image = can(regex("^ecr://(.+)", container.image)) ?
+                "${module.ecr[0].repository_urls[regex("^ecr://(.+)", container.image)[0]]}:${lookup(container, "image_tag", "latest")}" :
+                container.image
+            }
+          )
+        ]
+      }
+    )
+  } : var.ecs_task_definitions
+
+  # Build ECS services with dynamic references
+  ecs_services_with_references = var.ecs_enabled ? {
+    for svc_key, svc in var.ecs_services : svc_key => merge(
+      svc,
+      {
+        # Use dynamically created security group
+        security_groups = [aws_security_group.ecs_tasks[0].id]
+
+        # Use private subnets by default
+        subnets = var.private_subnet_ids
+
+        # Add load balancer configuration if ALB is enabled
+        load_balancers = var.ecs_alb_enabled && lookup(svc, "target_group_key", null) != null ? [
+          {
+            target_group_arn = aws_lb_target_group.ecs[svc.target_group_key].arn
+            container_name   = svc.container_name
+            container_port   = svc.container_port
+          }
+        ] : lookup(svc, "load_balancers", [])
+      }
+    )
+  } : {}
+}
+
 module "ecs" {
   count  = var.ecs_enabled ? 1 : 0
   source = "../modules/ecs"
@@ -426,11 +693,11 @@ module "ecs" {
   enable_fargate_spot                = var.ecs_enable_fargate_spot
   default_capacity_provider_strategy = var.ecs_default_capacity_provider_strategy
 
-  # Task Definitions
-  task_definitions = var.ecs_task_definitions
+  # Task Definitions with dynamic ECR references
+  task_definitions = local.ecs_task_definitions_with_ecr
 
-  # Services
-  services = var.ecs_services
+  # Services with dynamic security groups and subnets
+  services = local.ecs_services_with_references
 
   # CloudWatch Logs
   create_cloudwatch_log_groups = var.ecs_create_cloudwatch_log_groups
@@ -442,4 +709,7 @@ module "ecs" {
 
   # Tags
   tags = local.common_tags
+
+  # Ensure ECR is created before ECS
+  depends_on = [module.ecr]
 }
