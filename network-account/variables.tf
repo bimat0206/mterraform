@@ -533,3 +533,184 @@ variable "alb_security_group_ingress_rules" {
   ]
   description = "List of ingress rules for ALB security group"
 }
+
+# -----------------------------------------------------------------------------
+# Transit Gateway Configuration
+# -----------------------------------------------------------------------------
+variable "tgw_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable Transit Gateway"
+}
+
+variable "tgw_description" {
+  type        = string
+  default     = ""
+  description = "Description of the Transit Gateway"
+}
+
+variable "tgw_amazon_side_asn" {
+  type        = number
+  default     = 64512
+  description = "Private ASN for the Amazon side of a BGP session"
+}
+
+variable "tgw_auto_accept_shared_attachments" {
+  type        = string
+  default     = "disable"
+  description = "Whether resource attachment requests are automatically accepted (enable or disable)"
+}
+
+variable "tgw_default_route_table_association" {
+  type        = string
+  default     = "enable"
+  description = "Whether resource attachments are automatically associated with the default route table (enable or disable)"
+}
+
+variable "tgw_default_route_table_propagation" {
+  type        = string
+  default     = "enable"
+  description = "Whether resource attachments automatically propagate routes to the default route table (enable or disable)"
+}
+
+variable "tgw_dns_support" {
+  type        = string
+  default     = "enable"
+  description = "Whether DNS support is enabled (enable or disable)"
+}
+
+variable "tgw_vpn_ecmp_support" {
+  type        = string
+  default     = "enable"
+  description = "Whether VPN ECMP support is enabled (enable or disable)"
+}
+
+variable "tgw_multicast_support" {
+  type        = string
+  default     = "disable"
+  description = "Whether Multicast support is enabled (enable or disable)"
+}
+
+variable "tgw_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "One or more IPv4 or IPv6 CIDR blocks for the transit gateway"
+}
+
+variable "tgw_vpc_attachments" {
+  type = map(object({
+    vpc_id                                          = string
+    subnet_ids                                      = list(string)
+    dns_support                                     = optional(string, "enable")
+    ipv6_support                                    = optional(string, "disable")
+    appliance_mode_support                          = optional(string, "disable")
+    transit_gateway_default_route_table_association = optional(bool, true)
+    transit_gateway_default_route_table_propagation = optional(bool, true)
+  }))
+  default     = {}
+  description = "Map of VPC attachments to create"
+}
+
+variable "tgw_create_custom_route_tables" {
+  type        = bool
+  default     = false
+  description = "Create custom Transit Gateway route tables"
+}
+
+variable "tgw_custom_route_tables" {
+  type = map(object({
+    name = string
+  }))
+  default     = {}
+  description = "Map of custom route tables to create"
+}
+
+variable "tgw_enable_flow_logs" {
+  type        = bool
+  default     = true
+  description = "Enable Transit Gateway Flow Logs"
+}
+
+variable "tgw_flow_logs_destination_type" {
+  type        = string
+  default     = "cloud-watch-logs"
+  description = "Type of flow logs destination (cloud-watch-logs or s3)"
+}
+
+variable "tgw_flow_logs_s3_bucket_arn" {
+  type        = string
+  default     = ""
+  description = "ARN of S3 bucket for flow logs (required if destination_type is s3)"
+}
+
+variable "tgw_flow_logs_retention_days" {
+  type        = number
+  default     = 7
+  description = "Number of days to retain flow logs in CloudWatch (0 = indefinite)"
+}
+
+variable "tgw_flow_logs_max_aggregation_interval" {
+  type        = number
+  default     = 60
+  description = "Maximum interval of time during which a flow is captured and aggregated (60 or 600 seconds)"
+}
+
+variable "tgw_create_flow_logs_iam_role" {
+  type        = bool
+  default     = true
+  description = "Create IAM role for CloudWatch Logs"
+}
+
+variable "tgw_enable_cloudwatch_alarms" {
+  type        = bool
+  default     = true
+  description = "Enable CloudWatch alarms for Transit Gateway"
+}
+
+variable "tgw_alarm_sns_topic_arn" {
+  type        = string
+  default     = ""
+  description = "SNS topic ARN for CloudWatch alarms"
+}
+
+variable "tgw_bytes_in_threshold" {
+  type        = number
+  default     = 1000000000
+  description = "Threshold for BytesIn alarm (bytes)"
+}
+
+variable "tgw_bytes_out_threshold" {
+  type        = number
+  default     = 1000000000
+  description = "Threshold for BytesOut alarm (bytes)"
+}
+
+variable "tgw_packet_drop_count_blackhole_threshold" {
+  type        = number
+  default     = 1000
+  description = "Threshold for packet drops due to blackhole routes"
+}
+
+variable "tgw_packet_drop_count_no_route_threshold" {
+  type        = number
+  default     = 1000
+  description = "Threshold for packet drops due to no route"
+}
+
+variable "tgw_enable_resource_sharing" {
+  type        = bool
+  default     = false
+  description = "Enable AWS RAM resource sharing for Transit Gateway"
+}
+
+variable "tgw_ram_principals" {
+  type        = list(string)
+  default     = []
+  description = "List of AWS principals to share Transit Gateway with"
+}
+
+variable "tgw_ram_allow_external_principals" {
+  type        = bool
+  default     = false
+  description = "Whether principals outside your organization can be associated"
+}
