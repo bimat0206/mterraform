@@ -261,3 +261,71 @@ module "transit_gateway" {
   # Tags
   tags = local.common_tags
 }
+
+# -----------------------------------------------------------------------------
+# WAF Module (optional)
+# -----------------------------------------------------------------------------
+module "waf" {
+  count  = var.waf_enabled ? 1 : 0
+  source = "../modules/waf"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = var.waf_service_name
+  identifier  = var.waf_identifier
+
+  # WAF Configuration
+  scope          = var.waf_scope
+  default_action = var.waf_default_action
+  description    = var.waf_description
+
+  # AWS Managed Rules
+  enable_aws_managed_rules      = var.waf_enable_aws_managed_rules
+  enable_core_rule_set          = var.waf_enable_core_rule_set
+  enable_known_bad_inputs       = var.waf_enable_known_bad_inputs
+  enable_sql_injection          = var.waf_enable_sql_injection
+  enable_linux_os               = var.waf_enable_linux_os
+  enable_unix_os                = var.waf_enable_unix_os
+  enable_windows_os             = var.waf_enable_windows_os
+  enable_php_app                = var.waf_enable_php_app
+  enable_wordpress_app          = var.waf_enable_wordpress_app
+  enable_amazon_ip_reputation   = var.waf_enable_amazon_ip_reputation
+  enable_anonymous_ip_list      = var.waf_enable_anonymous_ip_list
+  enable_bot_control            = var.waf_enable_bot_control
+  bot_control_inspection_level  = var.waf_bot_control_inspection_level
+
+  # Custom Rules - IP Sets
+  ip_allowlist = var.waf_ip_allowlist
+  ip_blocklist = var.waf_ip_blocklist
+
+  # Custom Rules - Rate Limiting
+  enable_rate_limiting = var.waf_enable_rate_limiting
+  rate_limit           = var.waf_rate_limit
+  rate_limit_action    = var.waf_rate_limit_action
+
+  # Custom Rules - Geographic Blocking
+  enable_geo_blocking   = var.waf_enable_geo_blocking
+  geo_blocked_countries = var.waf_geo_blocked_countries
+
+  # Logging
+  enable_logging       = var.waf_enable_logging
+  log_destination_type = var.waf_log_destination_type
+  log_retention_days   = var.waf_log_retention_days
+  s3_bucket_arn        = var.waf_s3_bucket_arn
+  kinesis_firehose_arn = var.waf_kinesis_firehose_arn
+  redacted_fields      = var.waf_redacted_fields
+
+  # Resource Associations
+  associated_alb_arns         = var.waf_associated_alb_arns
+  associated_api_gateway_arns = var.waf_associated_api_gateway_arns
+  associated_appsync_arns     = var.waf_associated_appsync_arns
+
+  # CloudWatch Metrics
+  enable_cloudwatch_metrics = var.waf_enable_cloudwatch_metrics
+  metric_name_prefix        = var.waf_metric_name_prefix
+
+  # Tags
+  tags = local.common_tags
+}

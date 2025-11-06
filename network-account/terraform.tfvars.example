@@ -440,3 +440,262 @@ alb_enabled = false # Set to true to enable ALB creation
 #                  $0.023/GB-month (S3)
 #
 # Example: 1 TGW + 3 VPCs + 1TB data + Flow Logs ≈ $217/month
+
+# -----------------------------------------------------------------------------
+# WAF Configuration
+# -----------------------------------------------------------------------------
+# Enable WAF for web application protection
+# waf_enabled = true
+# waf_service_name = "waf"
+# waf_identifier = "01"
+
+# Scope: REGIONAL (for ALB, API Gateway) or CLOUDFRONT
+# waf_scope = "REGIONAL"
+
+# Default action for requests that don't match any rule
+# waf_default_action = "allow"  # or "block"
+
+# Description
+# waf_description = "Production WAF for web applications"
+
+# -----------------------------------------------------------------------------
+# AWS Managed Rules (Toggle On/Off)
+# -----------------------------------------------------------------------------
+# Core Protection (Recommended - Enabled by Default)
+# waf_enable_aws_managed_rules = true
+# waf_enable_core_rule_set = true           # OWASP Top 10
+# waf_enable_known_bad_inputs = true        # Known malicious patterns
+# waf_enable_sql_injection = true           # SQL injection protection
+# waf_enable_amazon_ip_reputation = true    # Bad IP reputation
+
+# Operating System Protection (Enable based on backend)
+# waf_enable_linux_os = false    # Enable if Linux backend
+# waf_enable_unix_os = false     # Enable if Unix backend
+# waf_enable_windows_os = false  # Enable if Windows backend
+
+# Application-Specific Protection
+# waf_enable_php_app = false        # Enable for PHP applications
+# waf_enable_wordpress_app = false  # Enable for WordPress sites
+
+# Advanced Protection
+# waf_enable_anonymous_ip_list = false  # Block VPNs/proxies/Tor
+# waf_enable_bot_control = false        # Bot detection (additional charges)
+# waf_bot_control_inspection_level = "COMMON"  # or "TARGETED"
+
+# -----------------------------------------------------------------------------
+# Custom Rules - IP Management
+# -----------------------------------------------------------------------------
+# IP Allowlist (always allow these IPs)
+# waf_ip_allowlist = [
+#   "203.0.113.0/24",      # Office IP range
+#   "198.51.100.50/32"     # Monitoring system
+# ]
+
+# IP Blocklist (block these IPs)
+# waf_ip_blocklist = [
+#   "192.0.2.100/32",      # Malicious IP
+#   "198.51.100.0/24"      # Blocked range
+# ]
+
+# -----------------------------------------------------------------------------
+# Custom Rules - Rate Limiting
+# -----------------------------------------------------------------------------
+# Rate limiting (DDoS protection)
+# waf_enable_rate_limiting = true
+# waf_rate_limit = 2000  # Max requests per 5 minutes per IP
+# waf_rate_limit_action = "block"  # or "count" for testing
+
+# Common rate limits:
+# - API endpoints: 1000-2000
+# - Web applications: 2000-5000
+# - Public pages: 5000-10000
+
+# -----------------------------------------------------------------------------
+# Custom Rules - Geographic Blocking
+# -----------------------------------------------------------------------------
+# Block specific countries (ISO 3166-1 alpha-2 codes)
+# waf_enable_geo_blocking = true
+# waf_geo_blocked_countries = ["CN", "RU", "KP"]  # China, Russia, North Korea
+
+# -----------------------------------------------------------------------------
+# Logging Configuration
+# -----------------------------------------------------------------------------
+# CloudWatch Logs (Default)
+# waf_enable_logging = true
+# waf_log_destination_type = "cloudwatch"
+# waf_log_retention_days = 7  # 1, 3, 5, 7, 14, 30, etc.
+
+# S3 Logging (Cost-effective for long-term)
+# waf_enable_logging = true
+# waf_log_destination_type = "s3"
+# waf_s3_bucket_arn = "arn:aws:s3:::aws-waf-logs-myorg-prod"
+
+# Kinesis Data Firehose (Real-time streaming)
+# waf_enable_logging = true
+# waf_log_destination_type = "kinesis"
+# waf_kinesis_firehose_arn = "arn:aws:firehose:us-east-1:123456789012:deliverystream/waf-logs"
+
+# Redact sensitive data from logs
+# waf_redacted_fields = [
+#   {
+#     single_header = "authorization"  # Remove auth tokens
+#   },
+#   {
+#     single_header = "cookie"  # Remove cookies
+#   }
+# ]
+
+# -----------------------------------------------------------------------------
+# Resource Associations
+# -----------------------------------------------------------------------------
+# Associate WAF with ALBs
+# waf_associated_alb_arns = [
+#   "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/my-alb/abc123"
+# ]
+
+# Associate WAF with API Gateway stages
+# waf_associated_api_gateway_arns = [
+#   "arn:aws:apigateway:us-east-1::/restapis/abc123/stages/prod"
+# ]
+
+# Associate WAF with AppSync APIs
+# waf_associated_appsync_arns = [
+#   "arn:aws:appsync:us-east-1:123456789012:apis/abc123"
+# ]
+
+# -----------------------------------------------------------------------------
+# CloudWatch Metrics
+# -----------------------------------------------------------------------------
+# waf_enable_cloudwatch_metrics = true
+# waf_metric_name_prefix = ""  # Defaults to Web ACL name
+
+# -----------------------------------------------------------------------------
+# Example: Basic WAF for Web Application
+# -----------------------------------------------------------------------------
+# waf_enabled = true
+# waf_scope = "REGIONAL"
+# waf_default_action = "allow"
+# 
+# # Enable core protection
+# waf_enable_aws_managed_rules = true
+# waf_enable_core_rule_set = true
+# waf_enable_known_bad_inputs = true
+# waf_enable_sql_injection = true
+# 
+# # Rate limiting
+# waf_enable_rate_limiting = true
+# waf_rate_limit = 2000
+# 
+# # Logging
+# waf_enable_logging = true
+# waf_log_destination_type = "cloudwatch"
+# waf_log_retention_days = 7
+# 
+# # Associate with ALB
+# waf_associated_alb_arns = [
+#   module.alb.alb_arn  # From ALB module
+# ]
+
+# -----------------------------------------------------------------------------
+# Example: Maximum Protection WAF
+# -----------------------------------------------------------------------------
+# waf_enabled = true
+# waf_scope = "REGIONAL"
+# waf_default_action = "allow"
+# 
+# # Enable all AWS Managed Rules
+# waf_enable_aws_managed_rules = true
+# waf_enable_core_rule_set = true
+# waf_enable_known_bad_inputs = true
+# waf_enable_sql_injection = true
+# waf_enable_amazon_ip_reputation = true
+# waf_enable_anonymous_ip_list = true
+# waf_enable_bot_control = true
+# waf_bot_control_inspection_level = "COMMON"
+# 
+# # OS-specific (enable based on backend)
+# waf_enable_linux_os = true
+# 
+# # IP management
+# waf_ip_allowlist = ["203.0.113.0/24"]
+# waf_ip_blocklist = ["192.0.2.100/32"]
+# 
+# # Rate limiting
+# waf_enable_rate_limiting = true
+# waf_rate_limit = 2000
+# waf_rate_limit_action = "block"
+# 
+# # Geographic blocking
+# waf_enable_geo_blocking = true
+# waf_geo_blocked_countries = ["CN", "RU", "KP"]
+# 
+# # Logging with redaction
+# waf_enable_logging = true
+# waf_log_destination_type = "cloudwatch"
+# waf_log_retention_days = 30
+# waf_redacted_fields = [
+#   { single_header = "authorization" },
+#   { single_header = "cookie" }
+# ]
+# 
+# # Associate with resources
+# waf_associated_alb_arns = [module.alb.alb_arn]
+
+# -----------------------------------------------------------------------------
+# Example: CloudFront WAF (must be in us-east-1)
+# -----------------------------------------------------------------------------
+# Note: CloudFront WAF must be created in us-east-1 region
+# Use a separate provider and module for CloudFront scope
+# 
+# waf_enabled = true
+# waf_scope = "CLOUDFRONT"
+# waf_default_action = "allow"
+# 
+# waf_enable_aws_managed_rules = true
+# waf_enable_core_rule_set = true
+# waf_enable_sql_injection = true
+# waf_enable_rate_limiting = true
+# waf_rate_limit = 5000
+
+# After deployment:
+# 1. View WAF logs:
+#    terraform output waf_view_logs_command
+#
+# 2. View sampled requests (blocked requests):
+#    terraform output waf_get_sampled_requests_command
+#
+# 3. List associated resources:
+#    terraform output waf_list_resources_command
+#
+# 4. Check CloudWatch metrics:
+#    - AllowedRequests, BlockedRequests, CountedRequests
+#    - Per-rule metrics available
+
+# -----------------------------------------------------------------------------
+# WAF Cost Estimation
+# -----------------------------------------------------------------------------
+# Web ACL: $5/month
+# Rules: $1/month per rule
+# Requests: $0.60 per million requests
+# Bot Control: $10/month + $1 per million requests (optional)
+#
+# Examples:
+# Basic (Core + Known Bad Inputs + IP Reputation):
+#   $5 (ACL) + $3 (3 rules) + $6 (10M requests) = $14/month
+#
+# Standard (+SQL Injection + Rate Limiting):
+#   $5 (ACL) + $5 (5 rules) + $30 (50M requests) = $40/month
+#
+# Maximum (All rules + Bot Control):
+#   $5 (ACL) + $10 (10+ rules) + $10 (Bot Control) + $60 (100M requests) + $100 (Bot requests)
+#   = $185/month
+#
+# CloudWatch Logs: $0.50/GB ingested
+# S3 Logs: $0.023/GB-month (cheaper for long-term retention)
+#
+# Tips:
+# - Start with Core Rule Set + Known Bad Inputs (~$8/month base)
+# - Add rules as needed
+# - Use "count" mode first to test rules
+# - Bot Control is expensive - only enable if needed
+# - Use S3 for cost-effective log retention

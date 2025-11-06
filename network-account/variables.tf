@@ -714,3 +714,240 @@ variable "tgw_ram_allow_external_principals" {
   default     = false
   description = "Whether principals outside your organization can be associated"
 }
+
+# -----------------------------------------------------------------------------
+# WAF Variables
+# -----------------------------------------------------------------------------
+variable "waf_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable WAF deployment"
+}
+
+variable "waf_service_name" {
+  type        = string
+  default     = "waf"
+  description = "Service name for WAF"
+}
+
+variable "waf_identifier" {
+  type        = string
+  default     = "01"
+  description = "Identifier for WAF"
+}
+
+variable "waf_scope" {
+  type        = string
+  default     = "REGIONAL"
+  description = "Scope of WAF: REGIONAL (for ALB, API Gateway) or CLOUDFRONT"
+}
+
+variable "waf_default_action" {
+  type        = string
+  default     = "allow"
+  description = "Default action for requests that don't match any rule (allow or block)"
+}
+
+variable "waf_description" {
+  type        = string
+  default     = ""
+  description = "Description of the Web ACL"
+}
+
+# AWS Managed Rules
+variable "waf_enable_aws_managed_rules" {
+  type        = bool
+  default     = true
+  description = "Enable AWS Managed Rules"
+}
+
+variable "waf_enable_core_rule_set" {
+  type        = bool
+  default     = true
+  description = "Enable AWS Managed Core Rule Set"
+}
+
+variable "waf_enable_known_bad_inputs" {
+  type        = bool
+  default     = true
+  description = "Enable Known Bad Inputs rule set"
+}
+
+variable "waf_enable_sql_injection" {
+  type        = bool
+  default     = true
+  description = "Enable SQL Injection rule set"
+}
+
+variable "waf_enable_linux_os" {
+  type        = bool
+  default     = false
+  description = "Enable Linux OS rule set"
+}
+
+variable "waf_enable_unix_os" {
+  type        = bool
+  default     = false
+  description = "Enable Unix OS rule set"
+}
+
+variable "waf_enable_windows_os" {
+  type        = bool
+  default     = false
+  description = "Enable Windows OS rule set"
+}
+
+variable "waf_enable_php_app" {
+  type        = bool
+  default     = false
+  description = "Enable PHP Application rule set"
+}
+
+variable "waf_enable_wordpress_app" {
+  type        = bool
+  default     = false
+  description = "Enable WordPress Application rule set"
+}
+
+variable "waf_enable_amazon_ip_reputation" {
+  type        = bool
+  default     = true
+  description = "Enable Amazon IP Reputation list"
+}
+
+variable "waf_enable_anonymous_ip_list" {
+  type        = bool
+  default     = false
+  description = "Enable Anonymous IP list (blocks VPNs, proxies, Tor)"
+}
+
+variable "waf_enable_bot_control" {
+  type        = bool
+  default     = false
+  description = "Enable Bot Control (additional charges apply)"
+}
+
+variable "waf_bot_control_inspection_level" {
+  type        = string
+  default     = "COMMON"
+  description = "Bot Control inspection level (COMMON or TARGETED)"
+}
+
+# Custom Rules - IP Sets
+variable "waf_ip_allowlist" {
+  type        = list(string)
+  default     = []
+  description = "List of IP addresses or CIDR blocks to always allow"
+}
+
+variable "waf_ip_blocklist" {
+  type        = list(string)
+  default     = []
+  description = "List of IP addresses or CIDR blocks to block"
+}
+
+# Custom Rules - Rate Limiting
+variable "waf_enable_rate_limiting" {
+  type        = bool
+  default     = false
+  description = "Enable rate limiting rule"
+}
+
+variable "waf_rate_limit" {
+  type        = number
+  default     = 2000
+  description = "Maximum number of requests allowed in 5-minute period from a single IP"
+}
+
+variable "waf_rate_limit_action" {
+  type        = string
+  default     = "block"
+  description = "Action to take when rate limit is exceeded (block or count)"
+}
+
+# Custom Rules - Geographic Blocking
+variable "waf_enable_geo_blocking" {
+  type        = bool
+  default     = false
+  description = "Enable geographic blocking"
+}
+
+variable "waf_geo_blocked_countries" {
+  type        = list(string)
+  default     = []
+  description = "List of country codes to block (ISO 3166-1 alpha-2)"
+}
+
+# Logging
+variable "waf_enable_logging" {
+  type        = bool
+  default     = true
+  description = "Enable WAF logging"
+}
+
+variable "waf_log_destination_type" {
+  type        = string
+  default     = "cloudwatch"
+  description = "Destination for WAF logs: cloudwatch, s3, or kinesis"
+}
+
+variable "waf_log_retention_days" {
+  type        = number
+  default     = 7
+  description = "Number of days to retain WAF logs in CloudWatch"
+}
+
+variable "waf_s3_bucket_arn" {
+  type        = string
+  default     = ""
+  description = "S3 bucket ARN for WAF logs (if using s3 destination)"
+}
+
+variable "waf_kinesis_firehose_arn" {
+  type        = string
+  default     = ""
+  description = "Kinesis Firehose ARN for WAF logs (if using kinesis destination)"
+}
+
+variable "waf_redacted_fields" {
+  type = list(object({
+    method        = optional(bool, false)
+    query_string  = optional(bool, false)
+    uri_path      = optional(bool, false)
+    single_header = optional(string, "")
+  }))
+  default     = []
+  description = "Fields to redact from WAF logs"
+}
+
+# Resource Associations
+variable "waf_associated_alb_arns" {
+  type        = list(string)
+  default     = []
+  description = "List of ALB ARNs to associate with WAF"
+}
+
+variable "waf_associated_api_gateway_arns" {
+  type        = list(string)
+  default     = []
+  description = "List of API Gateway stage ARNs to associate with WAF"
+}
+
+variable "waf_associated_appsync_arns" {
+  type        = list(string)
+  default     = []
+  description = "List of AppSync API ARNs to associate with WAF"
+}
+
+# CloudWatch Metrics
+variable "waf_enable_cloudwatch_metrics" {
+  type        = bool
+  default     = true
+  description = "Enable CloudWatch metrics for WAF"
+}
+
+variable "waf_metric_name_prefix" {
+  type        = string
+  default     = ""
+  description = "Prefix for CloudWatch metric names"
+}
