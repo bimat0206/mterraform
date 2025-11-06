@@ -383,6 +383,15 @@ variable "character_set_name" {
 }
 
 # -----------------------------------------------------------------------------
+# Secrets Manager Configuration
+# -----------------------------------------------------------------------------
+variable "secret_recovery_window_in_days" {
+  type        = number
+  default     = 30
+  description = "Number of days to retain deleted secrets (0 for immediate deletion, 7-30 for recovery window)"
+}
+
+# -----------------------------------------------------------------------------
 # Tags
 # -----------------------------------------------------------------------------
 variable "tags" {

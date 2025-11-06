@@ -149,19 +149,24 @@ output "rds_postgresql_database_name" {
   value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_name : null
 }
 
-output "rds_postgresql_secret_arn" {
-  description = "ARN of the master password secret (if enabled)"
-  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].master_user_secret_arn : null
+output "rds_postgresql_connection_secret_arn" {
+  description = "ARN of the complete connection secret with username, password, endpoint, port, and database name (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].connection_secret_arn : null
+}
+
+output "rds_postgresql_connection_secret_name" {
+  description = "Name of the complete connection secret (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].connection_secret_name : null
+}
+
+output "rds_postgresql_retrieve_connection_info_command" {
+  description = "Command to retrieve complete PostgreSQL connection information from Secrets Manager (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].retrieve_connection_info_command : null
 }
 
 output "rds_postgresql_connection_command" {
   description = "psql command to connect to PostgreSQL (if enabled)"
   value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].psql_command : null
-}
-
-output "rds_postgresql_retrieve_password_command" {
-  description = "Command to retrieve PostgreSQL password (if enabled)"
-  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].retrieve_password_command : null
 }
 
 # -----------------------------------------------------------------------------
@@ -187,17 +192,22 @@ output "rds_mysql_database_name" {
   value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_name : null
 }
 
-output "rds_mysql_secret_arn" {
-  description = "ARN of the master password secret (if enabled)"
-  value       = var.rds_mysql_enabled ? module.rds_mysql[0].master_user_secret_arn : null
+output "rds_mysql_connection_secret_arn" {
+  description = "ARN of the complete connection secret with username, password, endpoint, port, and database name (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].connection_secret_arn : null
+}
+
+output "rds_mysql_connection_secret_name" {
+  description = "Name of the complete connection secret (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].connection_secret_name : null
+}
+
+output "rds_mysql_retrieve_connection_info_command" {
+  description = "Command to retrieve complete MySQL connection information from Secrets Manager (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].retrieve_connection_info_command : null
 }
 
 output "rds_mysql_connection_command" {
   description = "mysql command to connect to MySQL (if enabled)"
   value       = var.rds_mysql_enabled ? module.rds_mysql[0].mysql_command : null
-}
-
-output "rds_mysql_retrieve_password_command" {
-  description = "Command to retrieve MySQL password (if enabled)"
-  value       = var.rds_mysql_enabled ? module.rds_mysql[0].retrieve_password_command : null
 }

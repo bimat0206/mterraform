@@ -67,16 +67,34 @@ output "db_instance_resource_id" {
 }
 
 # -----------------------------------------------------------------------------
-# Master User Password (Secrets Manager)
+# Master User Password (Secrets Manager) - RDS Managed
 # -----------------------------------------------------------------------------
 output "master_user_secret_arn" {
-  description = "The ARN of the master user secret (Secrets Manager)"
+  description = "The ARN of the master user secret (RDS-managed, password only)"
   value       = aws_db_instance.this.master_user_secret != null ? aws_db_instance.this.master_user_secret[0].secret_arn : null
 }
 
 output "master_user_secret_status" {
   description = "The status of the master user secret"
   value       = aws_db_instance.this.master_user_secret != null ? aws_db_instance.this.master_user_secret[0].secret_status : null
+}
+
+# -----------------------------------------------------------------------------
+# Complete Connection Information (Secrets Manager) - Custom Secret
+# -----------------------------------------------------------------------------
+output "connection_secret_arn" {
+  description = "The ARN of the complete connection secret (includes username, password, endpoint, port, database name)"
+  value       = aws_secretsmanager_secret.db_connection.arn
+}
+
+output "connection_secret_name" {
+  description = "The name of the complete connection secret"
+  value       = aws_secretsmanager_secret.db_connection.name
+}
+
+output "connection_secret_id" {
+  description = "The ID of the complete connection secret"
+  value       = aws_secretsmanager_secret.db_connection.id
 }
 
 # -----------------------------------------------------------------------------
@@ -173,10 +191,10 @@ output "read_replica_addresses" {
 }
 
 # -----------------------------------------------------------------------------
-# Connection Information
+# Connection Information and Commands
 # -----------------------------------------------------------------------------
 output "connection_string" {
-  description = "MySQL connection string"
+  description = "MySQL connection string (without password)"
   value       = "mysql://${aws_db_instance.this.username}@${aws_db_instance.this.address}:${aws_db_instance.this.port}/${aws_db_instance.this.db_name != null ? aws_db_instance.this.db_name : ""}"
 }
 
@@ -185,7 +203,25 @@ output "mysql_command" {
   value       = "mysql -h ${aws_db_instance.this.address} -P ${aws_db_instance.this.port} -u ${aws_db_instance.this.username} -p${aws_db_instance.this.db_name != null ? " ${aws_db_instance.this.db_name}" : ""}"
 }
 
-output "retrieve_password_command" {
-  description = "AWS CLI command to retrieve master password from Secrets Manager"
-  value       = aws_db_instance.this.master_user_secret != null ? "aws secretsmanager get-secret-value --secret-id ${aws_db_instance.this.master_user_secret[0].secret_arn} --query SecretString --output text | jq -r '.password'" : "N/A - password managed manually"
+output "retrieve_connection_info_command" {
+  description = "AWS CLI command to retrieve complete connection information from Secrets Manager"
+  value       = "aws secretsmanager get-secret-value --secret-id ${aws_secretsmanager_secret.db_connection.name} --query SecretString --output text | jq ."
+}
+
+output "retrieve_password_only_command" {
+  description = "AWS CLI command to retrieve only the password from connection secret"
+  value       = "aws secretsmanager get-secret-value --secret-id ${aws_secretsmanager_secret.db_connection.name} --query SecretString --output text | jq -r '.password'"
+}
+
+output "connection_info_example" {
+  description = "Example of the connection information stored in Secrets Manager"
+  value = jsonencode({
+    username = "admin"
+    password = "<password_value>"
+    engine   = "mysql"
+    host     = "<rds_endpoint>"
+    port     = 3306
+    dbname   = "<database_name>"
+    endpoint = "<rds_endpoint>:3306"
+  })
 }

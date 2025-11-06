@@ -327,6 +327,45 @@ resource "aws_db_instance" "this" {
 }
 
 # -----------------------------------------------------------------------------
+# Secrets Manager - Complete Connection Information
+# -----------------------------------------------------------------------------
+data "aws_secretsmanager_secret_version" "master_password" {
+  count = var.manage_master_user_password ? 1 : 0
+
+  secret_id  = aws_db_instance.this.master_user_secret[0].secret_arn
+  depends_on = [aws_db_instance.this]
+}
+
+resource "aws_secretsmanager_secret" "db_connection" {
+  name                    = "${local.name}-connection"
+  description             = "Complete connection information for ${local.name} MySQL database"
+  recovery_window_in_days = var.secret_recovery_window_in_days
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name        = "${local.name}-connection"
+      Description = "Database connection credentials and endpoint"
+    }
+  )
+}
+
+resource "aws_secretsmanager_secret_version" "db_connection" {
+  secret_id = aws_secretsmanager_secret.db_connection.id
+  secret_string = jsonencode({
+    username = aws_db_instance.this.username
+    password = var.manage_master_user_password ? jsondecode(data.aws_secretsmanager_secret_version.master_password[0].secret_string)["password"] : var.master_password
+    engine   = "mysql"
+    host     = aws_db_instance.this.address
+    port     = aws_db_instance.this.port
+    dbname   = aws_db_instance.this.db_name != null ? aws_db_instance.this.db_name : ""
+    endpoint = "${aws_db_instance.this.address}:${aws_db_instance.this.port}"
+  })
+
+  depends_on = [aws_db_instance.this]
+}
+
+# -----------------------------------------------------------------------------
 # Read Replicas
 # -----------------------------------------------------------------------------
 resource "aws_db_instance" "replica" {
