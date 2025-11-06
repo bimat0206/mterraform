@@ -125,3 +125,79 @@ output "ec2_windows_rdp_command" {
   description = "Command to retrieve Windows password (if enabled)"
   value       = var.ec2_windows_enabled ? module.ec2_windows[0].rdp_connection_command : null
 }
+
+# -----------------------------------------------------------------------------
+# RDS PostgreSQL Outputs
+# -----------------------------------------------------------------------------
+output "rds_postgresql_endpoint" {
+  description = "PostgreSQL RDS endpoint (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_endpoint : null
+}
+
+output "rds_postgresql_address" {
+  description = "PostgreSQL RDS address (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_address : null
+}
+
+output "rds_postgresql_port" {
+  description = "PostgreSQL RDS port (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_port : null
+}
+
+output "rds_postgresql_database_name" {
+  description = "PostgreSQL database name (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_name : null
+}
+
+output "rds_postgresql_secret_arn" {
+  description = "ARN of the master password secret (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].master_user_secret_arn : null
+}
+
+output "rds_postgresql_connection_command" {
+  description = "psql command to connect to PostgreSQL (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].psql_command : null
+}
+
+output "rds_postgresql_retrieve_password_command" {
+  description = "Command to retrieve PostgreSQL password (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].retrieve_password_command : null
+}
+
+# -----------------------------------------------------------------------------
+# RDS MySQL Outputs
+# -----------------------------------------------------------------------------
+output "rds_mysql_endpoint" {
+  description = "MySQL RDS endpoint (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_endpoint : null
+}
+
+output "rds_mysql_address" {
+  description = "MySQL RDS address (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_address : null
+}
+
+output "rds_mysql_port" {
+  description = "MySQL RDS port (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_port : null
+}
+
+output "rds_mysql_database_name" {
+  description = "MySQL database name (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_name : null
+}
+
+output "rds_mysql_secret_arn" {
+  description = "ARN of the master password secret (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].master_user_secret_arn : null
+}
+
+output "rds_mysql_connection_command" {
+  description = "mysql command to connect to MySQL (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].mysql_command : null
+}
+
+output "rds_mysql_retrieve_password_command" {
+  description = "Command to retrieve MySQL password (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].retrieve_password_command : null
+}

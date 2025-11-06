@@ -169,3 +169,97 @@ module "ec2_windows" {
   # Ensure key pair is created before EC2 instance
   depends_on = [module.keypair_windows]
 }
+
+# -----------------------------------------------------------------------------
+# RDS PostgreSQL Module (optional)
+# -----------------------------------------------------------------------------
+module "rds_postgresql" {
+  count  = var.rds_postgresql_enabled ? 1 : 0
+  source = "../modules/rds-postgresql"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "db"
+  identifier  = "01"
+
+  # Network Configuration
+  vpc_id     = var.vpc_id
+  subnet_ids = var.private_subnet_ids
+
+  # Database Configuration
+  instance_class    = var.rds_postgresql_instance_class
+  engine_version    = var.rds_postgresql_engine_version
+  allocated_storage = var.rds_postgresql_allocated_storage
+  database_name     = var.rds_postgresql_database_name
+  master_username   = var.rds_postgresql_master_username
+
+  # High Availability
+  multi_az = var.rds_postgresql_multi_az
+
+  # Backup
+  backup_retention_period = var.rds_postgresql_backup_retention_period
+
+  # Security
+  create_security_group   = true
+  allowed_cidr_blocks     = var.rds_postgresql_allowed_cidr_blocks
+  deletion_protection     = var.rds_postgresql_deletion_protection
+
+  # Monitoring
+  performance_insights_enabled = true
+  monitoring_interval          = 60
+
+  # Storage
+  storage_encrypted = true
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# RDS MySQL Module (optional)
+# -----------------------------------------------------------------------------
+module "rds_mysql" {
+  count  = var.rds_mysql_enabled ? 1 : 0
+  source = "../modules/rds-mysql"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "db"
+  identifier  = "01"
+
+  # Network Configuration
+  vpc_id     = var.vpc_id
+  subnet_ids = var.private_subnet_ids
+
+  # Database Configuration
+  instance_class    = var.rds_mysql_instance_class
+  engine_version    = var.rds_mysql_engine_version
+  allocated_storage = var.rds_mysql_allocated_storage
+  database_name     = var.rds_mysql_database_name
+  master_username   = var.rds_mysql_master_username
+
+  # High Availability
+  multi_az = var.rds_mysql_multi_az
+
+  # Backup
+  backup_retention_period = var.rds_mysql_backup_retention_period
+
+  # Security
+  create_security_group   = true
+  allowed_cidr_blocks     = var.rds_mysql_allowed_cidr_blocks
+  deletion_protection     = var.rds_mysql_deletion_protection
+
+  # Monitoring
+  performance_insights_enabled = true
+  monitoring_interval          = 60
+
+  # Storage
+  storage_encrypted = true
+
+  # Tags
+  tags = local.common_tags
+}
