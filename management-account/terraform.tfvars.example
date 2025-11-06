@@ -1,0 +1,366 @@
+# -----------------------------------------------------------------------------
+# General Configuration
+# -----------------------------------------------------------------------------
+aws_region  = "us-east-1"
+org_prefix  = "myorg"
+environment = "management"
+workload    = "org"
+
+tags = {
+  Project    = "AWS Landing Zone"
+  CostCenter = "IT"
+  ManagedBy  = "Terraform"
+}
+
+# -----------------------------------------------------------------------------
+# IAM Identity Center Configuration
+# -----------------------------------------------------------------------------
+# Enable IAM Identity Center management
+# identity_center_enabled = true
+
+# For Internal Identity Store (no external IdP)
+# create_identity_store_users  = true
+# create_identity_store_groups = true
+
+# For External Identity Provider (Azure AD, Okta, etc.)
+# external_idp_enabled         = true
+# create_identity_store_users  = false
+# create_identity_store_groups = false
+
+# -----------------------------------------------------------------------------
+# Example 1: Internal Identity Store with Users and Groups
+# -----------------------------------------------------------------------------
+# identity_center_enabled = true
+# create_identity_store_users = true
+# create_identity_store_groups = true
+#
+# identity_center_groups = {
+#   administrators = {
+#     display_name = "Administrators"
+#     description  = "Full administrative access to all accounts"
+#   }
+#   developers = {
+#     display_name = "Developers"
+#     description  = "Developer access to development and staging accounts"
+#   }
+#   data_engineers = {
+#     display_name = "Data Engineers"
+#     description  = "Data engineering team"
+#   }
+#   readonly = {
+#     display_name = "ReadOnly"
+#     description  = "Read-only access across all accounts"
+#   }
+#   billing = {
+#     display_name = "Billing"
+#     description  = "Billing and cost management access"
+#   }
+# }
+#
+# identity_center_users = {
+#   john_admin = {
+#     user_name    = "john.admin"
+#     display_name = "John Admin"
+#     email        = "john.admin@example.com"
+#     first_name   = "John"
+#     last_name    = "Admin"
+#     group_memberships = ["administrators"]
+#   }
+#   jane_dev = {
+#     user_name    = "jane.developer"
+#     display_name = "Jane Developer"
+#     email        = "jane.developer@example.com"
+#     first_name   = "Jane"
+#     last_name    = "Developer"
+#     group_memberships = ["developers"]
+#   }
+#   bob_data = {
+#     user_name    = "bob.data"
+#     display_name = "Bob Data"
+#     email        = "bob.data@example.com"
+#     first_name   = "Bob"
+#     last_name    = "Data"
+#     group_memberships = ["data_engineers"]
+#   }
+# }
+#
+# identity_center_permission_sets = {
+#   AdministratorAccess = {
+#     description      = "Full administrative access"
+#     session_duration = "PT8H"
+#     aws_managed_policies = ["AdministratorAccess"]
+#     tags = {
+#       Compliance = "High-Risk"
+#     }
+#   }
+#   PowerUserAccess = {
+#     description      = "Power user access (no IAM)"
+#     session_duration = "PT4H"
+#     aws_managed_policies = ["PowerUserAccess"]
+#   }
+#   DeveloperAccess = {
+#     description      = "Developer access with deployment permissions"
+#     session_duration = "PT8H"
+#     aws_managed_policies = ["PowerUserAccess"]
+#     inline_policy = jsonencode({
+#       Version = "2012-10-17"
+#       Statement = [
+#         {
+#           Effect = "Allow"
+#           Action = [
+#             "eks:DescribeCluster",
+#             "eks:ListClusters",
+#             "eks:AccessKubernetesApi"
+#           ]
+#           Resource = "*"
+#         }
+#       ]
+#     })
+#   }
+#   DataEngineerAccess = {
+#     description      = "Data engineering access"
+#     session_duration = "PT8H"
+#     aws_managed_policies = [
+#       "AmazonAthenaFullAccess",
+#       "AWSGlueConsoleFullAccess",
+#       "AmazonS3FullAccess",
+#       "AmazonRedshiftFullAccess"
+#     ]
+#   }
+#   ReadOnlyAccess = {
+#     description      = "Read-only access"
+#     session_duration = "PT2H"
+#     aws_managed_policies = ["ReadOnlyAccess"]
+#   }
+#   BillingAccess = {
+#     description      = "Billing and cost management"
+#     session_duration = "PT4H"
+#     aws_managed_policies = ["job-function/Billing"]
+#   }
+# }
+#
+# identity_center_account_assignments = {
+#   # Management Account
+#   "admins-management" = {
+#     account_id       = "111111111111"
+#     permission_set   = "AdministratorAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "administrators"
+#   }
+#   "billing-management" = {
+#     account_id       = "111111111111"
+#     permission_set   = "BillingAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "billing"
+#   }
+#
+#   # Network Account
+#   "admins-network" = {
+#     account_id       = "222222222222"
+#     permission_set   = "AdministratorAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "administrators"
+#   }
+#   "readonly-network" = {
+#     account_id       = "222222222222"
+#     permission_set   = "ReadOnlyAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "readonly"
+#   }
+#
+#   # Development Workload Account
+#   "admins-dev" = {
+#     account_id       = "333333333333"
+#     permission_set   = "AdministratorAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "administrators"
+#   }
+#   "devs-dev" = {
+#     account_id       = "333333333333"
+#     permission_set   = "DeveloperAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "developers"
+#   }
+#   "readonly-dev" = {
+#     account_id       = "333333333333"
+#     permission_set   = "ReadOnlyAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "readonly"
+#   }
+#
+#   # Production Workload Account
+#   "admins-prod" = {
+#     account_id       = "444444444444"
+#     permission_set   = "AdministratorAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "administrators"
+#   }
+#   "readonly-prod" = {
+#     account_id       = "444444444444"
+#     permission_set   = "ReadOnlyAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "readonly"
+#   }
+#
+#   # Data Account
+#   "data-engineers-data" = {
+#     account_id       = "555555555555"
+#     permission_set   = "DataEngineerAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "data_engineers"
+#   }
+# }
+
+# -----------------------------------------------------------------------------
+# Example 2: External Identity Provider (Azure AD)
+# -----------------------------------------------------------------------------
+# identity_center_enabled = true
+# external_idp_enabled = true
+# create_identity_store_users = false
+# create_identity_store_groups = false
+#
+# # Reference external Azure AD groups
+# external_groups = {
+#   administrators = {
+#     display_name = "AWS-Administrators"  # Must match Azure AD group name
+#   }
+#   developers = {
+#     display_name = "AWS-Developers"
+#   }
+#   data_engineers = {
+#     display_name = "AWS-DataEngineers"
+#   }
+#   readonly = {
+#     display_name = "AWS-ReadOnly"
+#   }
+# }
+#
+# # Permission sets (same as above)
+# identity_center_permission_sets = {
+#   AdministratorAccess = {
+#     description      = "Full administrative access"
+#     session_duration = "PT8H"
+#     aws_managed_policies = ["AdministratorAccess"]
+#   }
+#   # ... other permission sets ...
+# }
+#
+# # Account assignments using external groups
+# identity_center_account_assignments = {
+#   "admins-all-accounts" = {
+#     account_id       = "111111111111"
+#     permission_set   = "AdministratorAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "administrators"
+#   }
+#   # ... other assignments ...
+# }
+
+# -----------------------------------------------------------------------------
+# Example 3: Minimal Setup
+# -----------------------------------------------------------------------------
+# identity_center_enabled = true
+# create_identity_store_users = true
+# create_identity_store_groups = true
+#
+# identity_center_groups = {
+#   administrators = {
+#     display_name = "Administrators"
+#     description  = "Administrators group"
+#   }
+# }
+#
+# identity_center_users = {
+#   admin = {
+#     user_name    = "admin"
+#     display_name = "Administrator"
+#     email        = "admin@example.com"
+#     first_name   = "Admin"
+#     last_name    = "User"
+#     group_memberships = ["administrators"]
+#   }
+# }
+#
+# identity_center_permission_sets = {
+#   AdministratorAccess = {
+#     description      = "Full admin access"
+#     session_duration = "PT8H"
+#     aws_managed_policies = ["AdministratorAccess"]
+#   }
+# }
+#
+# identity_center_account_assignments = {
+#   "admin-management" = {
+#     account_id       = "111111111111"
+#     permission_set   = "AdministratorAccess"
+#     principal_type   = "GROUP"
+#     principal_name   = "administrators"
+#   }
+# }
+
+# -----------------------------------------------------------------------------
+# Common Permission Set Examples
+# -----------------------------------------------------------------------------
+# Full Access:
+# - AdministratorAccess: Full access to everything
+# - PowerUserAccess: Full access except IAM
+#
+# Service-Specific:
+# - ViewOnlyAccess: Console read-only
+# - ReadOnlyAccess: API read-only
+# - SecurityAudit: Security audit access
+#
+# Job Functions:
+# - job-function/Billing: Billing access
+# - job-function/DataScientist: Data science tools
+# - job-function/DatabaseAdministrator: Database admin
+# - job-function/NetworkAdministrator: Network admin
+# - job-function/SystemAdministrator: System admin
+#
+# Service-Specific Examples:
+# - AmazonS3FullAccess: S3 full access
+# - AmazonEC2FullAccess: EC2 full access
+# - AWSLambda_FullAccess: Lambda full access
+# - AmazonRDSFullAccess: RDS full access
+
+# -----------------------------------------------------------------------------
+# Session Duration Guidelines
+# -----------------------------------------------------------------------------
+# PT1H  - 1 hour (default, use for privileged operations)
+# PT2H  - 2 hours (read-only users)
+# PT4H  - 4 hours (standard developers)
+# PT8H  - 8 hours (full-time developers/admins)
+# PT12H - 12 hours (maximum, for extended work sessions)
+
+# -----------------------------------------------------------------------------
+# Account IDs Reference
+# -----------------------------------------------------------------------------
+# Replace these with your actual AWS account IDs:
+# - Management Account: 111111111111
+# - Network Account: 222222222222
+# - Dev Workload Account: 333333333333
+# - Prod Workload Account: 444444444444
+# - Data Account: 555555555555
+
+# After deployment:
+# 1. Users will receive email invitation to set up password
+# 2. Access AWS SSO portal URL (find in AWS Console -> IAM Identity Center)
+# 3. Users login with email and password
+# 4. Users select account and role from portal
+# 5. Users can also use AWS CLI with: aws sso login --profile <profile-name>
+
+# For AWS CLI configuration, users should run:
+# aws configure sso
+# SSO start URL: <your-sso-portal-url>
+# SSO region: us-east-1
+# SSO account ID: <account-id>
+# SSO role name: <permission-set-name>
+
+# -----------------------------------------------------------------------------
+# IAM Identity Center Cost
+# -----------------------------------------------------------------------------
+# IAM Identity Center is FREE
+# - No charge for users, groups, permission sets
+# - No charge for account assignments
+# - External IdP may have separate costs (Azure AD, Okta, etc.)
+# - You only pay for AWS resources accessed by users
