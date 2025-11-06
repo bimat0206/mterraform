@@ -125,3 +125,89 @@ output "ec2_windows_rdp_command" {
   description = "Command to retrieve Windows password (if enabled)"
   value       = var.ec2_windows_enabled ? module.ec2_windows[0].rdp_connection_command : null
 }
+
+# -----------------------------------------------------------------------------
+# RDS PostgreSQL Outputs
+# -----------------------------------------------------------------------------
+output "rds_postgresql_endpoint" {
+  description = "PostgreSQL RDS endpoint (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_endpoint : null
+}
+
+output "rds_postgresql_address" {
+  description = "PostgreSQL RDS address (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_address : null
+}
+
+output "rds_postgresql_port" {
+  description = "PostgreSQL RDS port (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_port : null
+}
+
+output "rds_postgresql_database_name" {
+  description = "PostgreSQL database name (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].db_instance_name : null
+}
+
+output "rds_postgresql_connection_secret_arn" {
+  description = "ARN of the complete connection secret with username, password, endpoint, port, and database name (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].connection_secret_arn : null
+}
+
+output "rds_postgresql_connection_secret_name" {
+  description = "Name of the complete connection secret (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].connection_secret_name : null
+}
+
+output "rds_postgresql_retrieve_connection_info_command" {
+  description = "Command to retrieve complete PostgreSQL connection information from Secrets Manager (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].retrieve_connection_info_command : null
+}
+
+output "rds_postgresql_connection_command" {
+  description = "psql command to connect to PostgreSQL (if enabled)"
+  value       = var.rds_postgresql_enabled ? module.rds_postgresql[0].psql_command : null
+}
+
+# -----------------------------------------------------------------------------
+# RDS MySQL Outputs
+# -----------------------------------------------------------------------------
+output "rds_mysql_endpoint" {
+  description = "MySQL RDS endpoint (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_endpoint : null
+}
+
+output "rds_mysql_address" {
+  description = "MySQL RDS address (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_address : null
+}
+
+output "rds_mysql_port" {
+  description = "MySQL RDS port (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_port : null
+}
+
+output "rds_mysql_database_name" {
+  description = "MySQL database name (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].db_instance_name : null
+}
+
+output "rds_mysql_connection_secret_arn" {
+  description = "ARN of the complete connection secret with username, password, endpoint, port, and database name (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].connection_secret_arn : null
+}
+
+output "rds_mysql_connection_secret_name" {
+  description = "Name of the complete connection secret (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].connection_secret_name : null
+}
+
+output "rds_mysql_retrieve_connection_info_command" {
+  description = "Command to retrieve complete MySQL connection information from Secrets Manager (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].retrieve_connection_info_command : null
+}
+
+output "rds_mysql_connection_command" {
+  description = "mysql command to connect to MySQL (if enabled)"
+  value       = var.rds_mysql_enabled ? module.rds_mysql[0].mysql_command : null
+}

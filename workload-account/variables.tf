@@ -274,3 +274,129 @@ variable "ec2_windows_monitoring" {
   default     = false
   description = "Enable detailed monitoring for Windows instance"
 }
+
+# -----------------------------------------------------------------------------
+# RDS PostgreSQL Configuration
+# -----------------------------------------------------------------------------
+variable "rds_postgresql_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to create PostgreSQL RDS instance"
+}
+
+variable "rds_postgresql_instance_class" {
+  type        = string
+  default     = "db.t3.micro"
+  description = "Instance class for PostgreSQL RDS"
+}
+
+variable "rds_postgresql_engine_version" {
+  type        = string
+  default     = "16.1"
+  description = "PostgreSQL engine version"
+}
+
+variable "rds_postgresql_allocated_storage" {
+  type        = number
+  default     = 20
+  description = "Allocated storage in GB for PostgreSQL"
+}
+
+variable "rds_postgresql_database_name" {
+  type        = string
+  default     = ""
+  description = "Initial database name for PostgreSQL"
+}
+
+variable "rds_postgresql_master_username" {
+  type        = string
+  default     = "postgres"
+  description = "Master username for PostgreSQL"
+}
+
+variable "rds_postgresql_multi_az" {
+  type        = bool
+  default     = false
+  description = "Enable Multi-AZ for PostgreSQL"
+}
+
+variable "rds_postgresql_backup_retention_period" {
+  type        = number
+  default     = 7
+  description = "Backup retention period in days for PostgreSQL"
+}
+
+variable "rds_postgresql_allowed_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "CIDR blocks allowed to access PostgreSQL RDS"
+}
+
+variable "rds_postgresql_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Enable deletion protection for PostgreSQL"
+}
+
+# -----------------------------------------------------------------------------
+# RDS MySQL Configuration
+# -----------------------------------------------------------------------------
+variable "rds_mysql_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to create MySQL RDS instance"
+}
+
+variable "rds_mysql_instance_class" {
+  type        = string
+  default     = "db.t3.micro"
+  description = "Instance class for MySQL RDS"
+}
+
+variable "rds_mysql_engine_version" {
+  type        = string
+  default     = "8.0.35"
+  description = "MySQL engine version"
+}
+
+variable "rds_mysql_allocated_storage" {
+  type        = number
+  default     = 20
+  description = "Allocated storage in GB for MySQL"
+}
+
+variable "rds_mysql_database_name" {
+  type        = string
+  default     = ""
+  description = "Initial database name for MySQL"
+}
+
+variable "rds_mysql_master_username" {
+  type        = string
+  default     = "admin"
+  description = "Master username for MySQL"
+}
+
+variable "rds_mysql_multi_az" {
+  type        = bool
+  default     = false
+  description = "Enable Multi-AZ for MySQL"
+}
+
+variable "rds_mysql_backup_retention_period" {
+  type        = number
+  default     = 7
+  description = "Backup retention period in days for MySQL"
+}
+
+variable "rds_mysql_allowed_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "CIDR blocks allowed to access MySQL RDS"
+}
+
+variable "rds_mysql_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Enable deletion protection for MySQL"
+}
