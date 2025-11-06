@@ -26,11 +26,6 @@ locals {
 
   # NAT Gateway logic
   nat_gateway_count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : (var.one_nat_gateway_per_az ? var.az_count : 1)) : 0
-
-  # VPC Endpoints
-  interface_endpoints = {
-    for k, v in var.enable_interface_endpoints : k => v if v == true
-  }
 }
 
 # -----------------------------------------------------------------------------
@@ -418,105 +413,6 @@ resource "aws_flow_log" "this" {
 
   tags = merge(var.tags, {
     Name = "${local.name}-flow-logs"
-  })
-}
-
-# -----------------------------------------------------------------------------
-# VPC Endpoints - Gateway (S3, DynamoDB)
-# -----------------------------------------------------------------------------
-resource "aws_vpc_endpoint" "s3" {
-  count = var.enable_s3_endpoint ? 1 : 0
-
-  vpc_id       = aws_vpc.this.id
-  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
-
-  tags = merge(var.tags, {
-    Name = "${local.name}-s3-endpoint"
-  })
-}
-
-resource "aws_vpc_endpoint_route_table_association" "s3_public" {
-  count = var.enable_s3_endpoint ? 1 : 0
-
-  vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
-  route_table_id  = aws_route_table.public.id
-}
-
-resource "aws_vpc_endpoint_route_table_association" "s3_private" {
-  count = var.enable_s3_endpoint ? (var.single_nat_gateway ? 1 : var.az_count) : 0
-
-  vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
-  route_table_id  = aws_route_table.private[count.index].id
-}
-
-resource "aws_vpc_endpoint" "dynamodb" {
-  count = var.enable_dynamodb_endpoint ? 1 : 0
-
-  vpc_id       = aws_vpc.this.id
-  service_name = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
-
-  tags = merge(var.tags, {
-    Name = "${local.name}-dynamodb-endpoint"
-  })
-}
-
-resource "aws_vpc_endpoint_route_table_association" "dynamodb_public" {
-  count = var.enable_dynamodb_endpoint ? 1 : 0
-
-  vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
-  route_table_id  = aws_route_table.public.id
-}
-
-resource "aws_vpc_endpoint_route_table_association" "dynamodb_private" {
-  count = var.enable_dynamodb_endpoint ? (var.single_nat_gateway ? 1 : var.az_count) : 0
-
-  vpc_endpoint_id = aws_vpc_endpoint.dynamodb[0].id
-  route_table_id  = aws_route_table.private[count.index].id
-}
-
-# -----------------------------------------------------------------------------
-# VPC Endpoints - Interface
-# -----------------------------------------------------------------------------
-resource "aws_security_group" "vpc_endpoints" {
-  count = length(local.interface_endpoints) > 0 ? 1 : 0
-
-  name        = "${local.name}-vpc-endpoints-sg"
-  description = "Security group for VPC interface endpoints"
-  vpc_id      = aws_vpc.this.id
-
-  ingress {
-    description = "HTTPS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.this.cidr_block]
-  }
-
-  egress {
-    description = "Allow all outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(var.tags, {
-    Name = "${local.name}-vpc-endpoints-sg"
-  })
-}
-
-resource "aws_vpc_endpoint" "interface" {
-  for_each = local.interface_endpoints
-
-  vpc_id              = aws_vpc.this.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.key}"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = aws_subnet.private[*].id
-  security_group_ids  = [aws_security_group.vpc_endpoints[0].id]
-  private_dns_enabled = true
-
-  tags = merge(var.tags, {
-    Name = "${local.name}-${each.key}-endpoint"
   })
 }
 

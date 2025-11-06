@@ -217,26 +217,6 @@ variable "flow_logs_retention_days" {
   description = "CloudWatch log group retention in days (only for cloud-watch-logs destination)"
 }
 
-# -----------------------------------------------------------------------------
-# VPC Endpoints configuration
-# -----------------------------------------------------------------------------
-variable "enable_s3_endpoint" {
-  type        = bool
-  default     = false
-  description = "Enable S3 VPC Endpoint (Gateway)"
-}
-
-variable "enable_dynamodb_endpoint" {
-  type        = bool
-  default     = false
-  description = "Enable DynamoDB VPC Endpoint (Gateway)"
-}
-
-variable "enable_interface_endpoints" {
-  type        = map(bool)
-  default     = {}
-  description = "Map of interface endpoint services to enable (e.g., { ec2 = true, ssm = true })"
-}
 
 # -----------------------------------------------------------------------------
 # DHCP Options configuration

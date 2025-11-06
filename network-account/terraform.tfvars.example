@@ -102,15 +102,27 @@ vpc_enable_nat_gateway = true # Enable NAT Gateway for private subnet internet a
 # vpc_flow_logs_retention_days   = 7  # CloudWatch log retention
 
 # -----------------------------------------------------------------------------
-# VPC Endpoints Configuration
+# VPC Gateway Endpoints Configuration (Separate Module)
+# Gateway endpoints are FREE - no hourly or data charges
 # -----------------------------------------------------------------------------
 
-# Gateway Endpoints (FREE - recommended for S3 and DynamoDB)
-# vpc_enable_s3_endpoint       = true
-# vpc_enable_dynamodb_endpoint = true
+# Enable the gateway endpoints module
+# vpce_gateway_enabled = true
 
-# Interface Endpoints (~$7.20/month each + data transfer)
-# vpc_enable_interface_endpoints = {
+# Gateway Endpoints (FREE - recommended for S3 and DynamoDB)
+# vpce_enable_s3_endpoint       = true
+# vpce_enable_dynamodb_endpoint = true
+
+# -----------------------------------------------------------------------------
+# VPC Interface Endpoints Configuration (Separate Module)
+# Interface endpoints cost ~$7.20/month each + data transfer (~$0.01/GB)
+# -----------------------------------------------------------------------------
+
+# Enable the interface endpoints module
+# vpce_interface_enabled = true
+
+# Interface Endpoints - Select services you need
+# vpce_interface_endpoints = {
 #   ec2         = true  # EC2 API
 #   ssm         = true  # Systems Manager
 #   ssmmessages = true  # SSM Session Manager
@@ -122,6 +134,9 @@ vpc_enable_nat_gateway = true # Enable NAT Gateway for private subnet internet a
 #   ecr.api     = true  # ECR API
 #   ecr.dkr     = true  # ECR Docker
 # }
+
+# Enable private DNS for interface endpoints (recommended)
+# vpce_private_dns_enabled = true
 
 # -----------------------------------------------------------------------------
 # DHCP Options Configuration

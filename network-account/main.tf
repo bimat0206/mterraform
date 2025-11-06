@@ -48,11 +48,6 @@ module "vpc" {
   flow_logs_traffic_type        = var.vpc_flow_logs_traffic_type
   flow_logs_retention_days      = var.vpc_flow_logs_retention_days
 
-  # VPC Endpoints Configuration
-  enable_s3_endpoint         = var.vpc_enable_s3_endpoint
-  enable_dynamodb_endpoint   = var.vpc_enable_dynamodb_endpoint
-  enable_interface_endpoints = var.vpc_enable_interface_endpoints
-
   # DHCP Options Configuration
   enable_dhcp_options              = var.vpc_enable_dhcp_options
   dhcp_options_domain_name         = var.vpc_dhcp_options_domain_name
@@ -76,6 +71,65 @@ module "vpc" {
   # Default Route Table Configuration
   manage_default_route_table = var.vpc_manage_default_route_table
   default_route_table_routes = var.vpc_default_route_table_routes
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# VPC Gateway Endpoints Module (optional)
+# -----------------------------------------------------------------------------
+module "vpc_gateway_endpoints" {
+  count  = var.vpce_gateway_enabled ? 1 : 0
+  source = "../modules/vpc-endpoint-gateway"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  identifier  = "01"
+
+  # VPC Configuration
+  vpc_id = module.vpc.vpc_id
+
+  # Gateway Endpoints
+  enable_s3_endpoint       = var.vpce_enable_s3_endpoint
+  enable_dynamodb_endpoint = var.vpce_enable_dynamodb_endpoint
+
+  # Route Tables
+  route_table_ids = concat(
+    [module.vpc.public_route_table_id],
+    module.vpc.private_route_table_ids
+  )
+
+  # Tags
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# VPC Interface Endpoints Module (optional)
+# -----------------------------------------------------------------------------
+module "vpc_interface_endpoints" {
+  count  = var.vpce_interface_enabled && length(var.vpce_interface_endpoints) > 0 ? 1 : 0
+  source = "../modules/vpc-endpoint-interface"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  identifier  = "01"
+
+  # VPC Configuration
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr_block = module.vpc.vpc_cidr_block
+  subnet_ids     = module.vpc.private_subnet_ids
+
+  # Interface Endpoints
+  endpoints           = var.vpce_interface_endpoints
+  private_dns_enabled = var.vpce_private_dns_enabled
+
+  # Security Group
+  create_security_group = true
 
   # Tags
   tags = local.common_tags
