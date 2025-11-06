@@ -89,3 +89,61 @@ output "acm_certificate_status" {
   description = "The status of the ACM certificate (if enabled)"
   value       = var.acm_enabled ? module.acm[0].certificate_status : null
 }
+
+# -----------------------------------------------------------------------------
+# ALB Outputs
+# -----------------------------------------------------------------------------
+output "alb_id" {
+  description = "The ID of the ALB (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].alb_id : null
+}
+
+output "alb_arn" {
+  description = "The ARN of the ALB (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].alb_arn : null
+}
+
+output "alb_dns_name" {
+  description = "The DNS name of the ALB (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].alb_dns_name : null
+}
+
+output "alb_zone_id" {
+  description = "The zone ID of the ALB (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].alb_zone_id : null
+}
+
+output "alb_security_group_id" {
+  description = "The ID of the ALB security group (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].security_group_id : null
+}
+
+output "alb_target_group_arns" {
+  description = "Map of target group names to ARNs (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].target_group_arns : {}
+}
+
+output "alb_listener_arns" {
+  description = "Map of listener keys to ARNs (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].listener_arns : {}
+}
+
+output "alb_endpoint" {
+  description = "The HTTP endpoint of the ALB (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].endpoint : null
+}
+
+output "alb_https_endpoint" {
+  description = "The HTTPS endpoint of the ALB (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].https_endpoint : null
+}
+
+output "alb_s3_bucket_id" {
+  description = "The ID of the S3 bucket for ALB logs (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].s3_bucket_id : null
+}
+
+output "alb_s3_bucket_arn" {
+  description = "The ARN of the S3 bucket for ALB logs (if enabled)"
+  value       = var.alb_enabled ? module.alb[0].s3_bucket_arn : null
+}

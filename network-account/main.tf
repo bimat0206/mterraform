@@ -157,3 +157,50 @@ module "acm" {
   # Tags
   tags = local.common_tags
 }
+
+# -----------------------------------------------------------------------------
+# ALB Module (optional)
+# -----------------------------------------------------------------------------
+module "alb" {
+  count  = var.alb_enabled ? 1 : 0
+  source = "../modules/alb"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "alb"
+  identifier  = "01"
+
+  # VPC Configuration
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = var.alb_internal ? module.vpc.private_subnet_ids : module.vpc.public_subnet_ids
+
+  # ALB Configuration
+  internal                       = var.alb_internal
+  enable_deletion_protection     = var.alb_enable_deletion_protection
+  enable_http2                   = var.alb_enable_http2
+  enable_cross_zone_load_balancing = var.alb_enable_cross_zone_load_balancing
+  idle_timeout                   = var.alb_idle_timeout
+  drop_invalid_header_fields     = var.alb_drop_invalid_header_fields
+
+  # S3 Logging Configuration
+  enable_access_logs          = var.alb_enable_access_logs
+  create_s3_bucket            = var.alb_create_s3_bucket
+  s3_bucket_prefix            = var.alb_s3_bucket_prefix
+  log_bucket_lifecycle_days   = var.alb_log_bucket_lifecycle_days
+  log_bucket_expiration_days  = var.alb_log_bucket_expiration_days
+
+  # Target Groups
+  target_groups = var.alb_target_groups
+
+  # Listeners
+  listeners = var.alb_listeners
+
+  # Security Group
+  create_security_group             = true
+  security_group_ingress_rules      = var.alb_security_group_ingress_rules
+
+  # Tags
+  tags = local.common_tags
+}

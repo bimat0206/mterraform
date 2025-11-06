@@ -376,3 +376,160 @@ variable "acm_enabled" {
   description = "Whether to create ACM certificate"
   default     = false
 }
+
+# -----------------------------------------------------------------------------
+# ALB Configuration
+# -----------------------------------------------------------------------------
+variable "alb_enabled" {
+  type        = bool
+  description = "Whether to create Application Load Balancer"
+  default     = false
+}
+
+variable "alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether the ALB is internal (true) or internet-facing (false)"
+}
+
+variable "alb_enable_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Enable deletion protection for the ALB"
+}
+
+variable "alb_enable_http2" {
+  type        = bool
+  default     = true
+  description = "Enable HTTP/2 on the ALB"
+}
+
+variable "alb_enable_cross_zone_load_balancing" {
+  type        = bool
+  default     = true
+  description = "Enable cross-zone load balancing"
+}
+
+variable "alb_idle_timeout" {
+  type        = number
+  default     = 60
+  description = "Time in seconds that the connection is allowed to be idle"
+}
+
+variable "alb_drop_invalid_header_fields" {
+  type        = bool
+  default     = true
+  description = "Drop invalid HTTP header fields"
+}
+
+variable "alb_enable_access_logs" {
+  type        = bool
+  default     = true
+  description = "Enable access logs for the ALB"
+}
+
+variable "alb_create_s3_bucket" {
+  type        = bool
+  default     = true
+  description = "Create S3 bucket for ALB logs"
+}
+
+variable "alb_s3_bucket_prefix" {
+  type        = string
+  default     = "alb-logs"
+  description = "Prefix for ALB logs in S3 bucket"
+}
+
+variable "alb_log_bucket_lifecycle_days" {
+  type        = number
+  default     = 90
+  description = "Days before transitioning logs to Infrequent Access storage"
+}
+
+variable "alb_log_bucket_expiration_days" {
+  type        = number
+  default     = 365
+  description = "Days before expiring/deleting logs"
+}
+
+variable "alb_target_groups" {
+  type = list(object({
+    name     = string
+    port     = number
+    protocol = string
+    target_type = optional(string, "instance")
+    deregistration_delay = optional(number, 300)
+    slow_start = optional(number, 0)
+    health_check = optional(object({
+      enabled             = optional(bool, true)
+      interval            = optional(number, 30)
+      path                = optional(string, "/")
+      port                = optional(string, "traffic-port")
+      protocol            = optional(string, "HTTP")
+      timeout             = optional(number, 5)
+      healthy_threshold   = optional(number, 3)
+      unhealthy_threshold = optional(number, 3)
+      matcher             = optional(string, "200")
+    }), {})
+    stickiness = optional(object({
+      enabled         = optional(bool, false)
+      type            = optional(string, "lb_cookie")
+      cookie_duration = optional(number, 86400)
+      cookie_name     = optional(string, "")
+    }), {})
+  }))
+  default     = []
+  description = "List of target groups to create for the ALB"
+}
+
+variable "alb_listeners" {
+  type = list(object({
+    port            = number
+    protocol        = string
+    certificate_arn = optional(string, "")
+    ssl_policy      = optional(string, "ELBSecurityPolicy-TLS13-1-2-2021-06")
+    default_action = object({
+      type             = string
+      target_group_key = optional(string, "")
+      redirect = optional(object({
+        protocol    = optional(string, "HTTPS")
+        port        = optional(string, "443")
+        status_code = string
+      }), null)
+      fixed_response = optional(object({
+        content_type = string
+        message_body = optional(string, "")
+        status_code  = string
+      }), null)
+    })
+  }))
+  default     = []
+  description = "List of listeners to create for the ALB"
+}
+
+variable "alb_security_group_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+    description = string
+  }))
+  default = [
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "HTTP from anywhere"
+    },
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "HTTPS from anywhere"
+    }
+  ]
+  description = "List of ingress rules for ALB security group"
+}
