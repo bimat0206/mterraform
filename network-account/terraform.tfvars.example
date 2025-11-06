@@ -203,6 +203,114 @@ acm_enabled = false # Set to true to enable ACM certificate creation
 # acm_hosted_zone_id            = "Z1234567890ABC" # Route53 hosted zone ID
 
 # -----------------------------------------------------------------------------
+# ALB Configuration (Optional)
+# Set alb_enabled = true to create Application Load Balancer
+# Cost: ~$22.50/month + data processing (~$0.008/GB)
+# -----------------------------------------------------------------------------
+alb_enabled = false # Set to true to enable ALB creation
+
+# Uncomment and configure if alb_enabled = true
+
+# Basic ALB Configuration
+# alb_internal                       = false  # false = internet-facing, true = internal
+# alb_enable_deletion_protection     = false  # Enable in production
+# alb_enable_http2                   = true
+# alb_enable_cross_zone_load_balancing = true
+# alb_idle_timeout                   = 60     # seconds
+# alb_drop_invalid_header_fields     = true   # Security best practice
+
+# S3 Access Logs (enabled by default)
+# alb_enable_access_logs          = true      # Enable ALB access logs
+# alb_create_s3_bucket            = true      # Auto-create S3 bucket
+# alb_s3_bucket_prefix            = "alb-logs"
+# alb_log_bucket_lifecycle_days   = 90        # Days before transitioning to IA
+# alb_log_bucket_expiration_days  = 365       # Days before deletion
+
+# Target Groups - Define your backend targets
+# alb_target_groups = [
+#   {
+#     name        = "web"
+#     port        = 80
+#     protocol    = "HTTP"
+#     target_type = "instance"  # instance, ip, or lambda
+#     deregistration_delay = 300
+#     health_check = {
+#       enabled             = true
+#       interval            = 30
+#       path                = "/health"
+#       port                = "traffic-port"
+#       protocol            = "HTTP"
+#       timeout             = 5
+#       healthy_threshold   = 3
+#       unhealthy_threshold = 3
+#       matcher             = "200"
+#     }
+#     stickiness = {
+#       enabled         = false
+#       type            = "lb_cookie"
+#       cookie_duration = 86400
+#     }
+#   }
+# ]
+
+# Listeners - Define how ALB receives traffic
+# Example 1: HTTP only
+# alb_listeners = [
+#   {
+#     port     = 80
+#     protocol = "HTTP"
+#     default_action = {
+#       type             = "forward"
+#       target_group_key = "web"
+#     }
+#   }
+# ]
+
+# Example 2: HTTPS with HTTP redirect (recommended for production)
+# alb_listeners = [
+#   {
+#     port     = 80
+#     protocol = "HTTP"
+#     default_action = {
+#       type = "redirect"
+#       redirect = {
+#         protocol    = "HTTPS"
+#         port        = "443"
+#         status_code = "HTTP_301"
+#       }
+#     }
+#   },
+#   {
+#     port            = 443
+#     protocol        = "HTTPS"
+#     certificate_arn = ""  # Use module.acm[0].certificate_arn or provide ARN
+#     ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+#     default_action = {
+#       type             = "forward"
+#       target_group_key = "web"
+#     }
+#   }
+# ]
+
+# Security Group Rules
+# alb_security_group_ingress_rules = [
+#   {
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     description = "HTTP from anywhere"
+#   },
+#   {
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     description = "HTTPS from anywhere"
+#   }
+# ]
+
+# -----------------------------------------------------------------------------
 # Example Configurations by Use Case
 # -----------------------------------------------------------------------------
 

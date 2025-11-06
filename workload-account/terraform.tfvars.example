@@ -1,0 +1,276 @@
+# -----------------------------------------------------------------------------
+# Example Terraform variables for Workload Account
+# Copy this file to dev.tfvars or prod.tfvars and customize values
+# Usage: terraform plan -var-file=dev.tfvars
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# General configuration
+# -----------------------------------------------------------------------------
+region = "ap-southeast-1" # AWS region
+
+# -----------------------------------------------------------------------------
+# Naming convention
+# -----------------------------------------------------------------------------
+org_prefix  = "tsk"  # Organization prefix (e.g., company abbreviation)
+environment = "dev"  # Environment: dev, prod, staging, etc.
+workload    = "app"  # Workload type: app, platform, data, etc.
+
+# -----------------------------------------------------------------------------
+# Tagging
+# Standard tags applied to all resources via module tags + provider default_tags
+# -----------------------------------------------------------------------------
+tags = {
+  owner       = "cloud-platform"  # Team or individual owner
+  cost-center = "CC-1234"         # Cost allocation code
+  project     = "landing-zone"    # Project name
+  environment = "dev"             # Environment (redundant with provider default_tags but useful)
+}
+
+# -----------------------------------------------------------------------------
+# Network Configuration (from Network Account)
+# Import these values from network account remote state or provide directly
+# -----------------------------------------------------------------------------
+vpc_id             = "vpc-0123456789abcdef"     # VPC ID from network account
+private_subnet_ids = ["subnet-abc", "subnet-def"] # Private subnet IDs
+public_subnet_ids  = ["subnet-xyz", "subnet-uvw"] # Public subnet IDs
+
+# Alternative: Use remote state data source (recommended)
+# data "terraform_remote_state" "network" {
+#   backend = "s3"
+#   config = {
+#     bucket = "your-terraform-state-bucket"
+#     key    = "network-account/terraform.tfstate"
+#     region = "ap-southeast-1"
+#   }
+# }
+# Then reference: data.terraform_remote_state.network.outputs.vpc_id
+
+# -----------------------------------------------------------------------------
+# EC2 Linux Configuration
+# Set ec2_linux_enabled = true to create Linux EC2 instance
+# Cost: t3.micro ~$8.47/month (Free tier eligible)
+# -----------------------------------------------------------------------------
+ec2_linux_enabled = false # Set to true to enable Linux EC2 instance
+
+# Uncomment and configure if ec2_linux_enabled = true
+
+# Basic Configuration
+# ec2_linux_instance_type = "t3.micro"  # Instance type (t3.micro, t3.small, t3.medium, etc.)
+# ec2_linux_ami_id        = ""          # Leave empty for auto-discovery (Amazon Linux 2023)
+# ec2_linux_key_name      = "my-keypair" # EC2 key pair for SSH access
+# ec2_linux_monitoring    = false       # Enable detailed monitoring ($2.10/month)
+
+# Network Configuration
+# ec2_linux_associate_public_ip = false  # true = public subnet, false = private subnet
+
+# Storage Configuration
+# ec2_linux_root_volume_size = 20  # Root volume size in GB
+
+# IAM Configuration
+# ec2_linux_create_iam_profile = true  # Create IAM instance profile with SSM
+
+# Security Group Rules
+# ec2_linux_security_group_ingress_rules = [
+#   {
+#     from_port   = 22
+#     to_port     = 22
+#     protocol    = "tcp"
+#     cidr_blocks = ["10.0.0.0/8"]  # Restrict to VPC or specific CIDR
+#     description = "SSH from VPC"
+#   }
+# ]
+
+# User Data - Example: Install and configure web server
+# ec2_linux_user_data = <<-EOT
+#   #!/bin/bash
+#   yum update -y
+#   yum install -y nginx
+#   systemctl start nginx
+#   systemctl enable nginx
+#   echo "Hello from $(hostname)" > /usr/share/nginx/html/index.html
+# EOT
+
+# -----------------------------------------------------------------------------
+# EC2 Windows Configuration
+# Set ec2_windows_enabled = true to create Windows EC2 instance
+# Cost: t3.medium ~$34.94/month (minimum recommended for Windows)
+# -----------------------------------------------------------------------------
+ec2_windows_enabled = false # Set to true to enable Windows EC2 instance
+
+# Uncomment and configure if ec2_windows_enabled = true
+
+# Basic Configuration
+# ec2_windows_instance_type = "t3.medium"  # Instance type (minimum t3.medium for Windows)
+# ec2_windows_ami_id        = ""           # Leave empty for auto-discovery (Windows Server 2022)
+# ec2_windows_key_name      = "my-keypair" # EC2 key pair for password retrieval
+# ec2_windows_monitoring    = false        # Enable detailed monitoring ($2.10/month)
+
+# Windows-Specific Configuration
+# ec2_windows_get_password_data = false  # Retrieve Windows administrator password (requires key_name)
+
+# Network Configuration
+# ec2_windows_associate_public_ip = false  # true = public subnet, false = private subnet
+
+# Storage Configuration
+# ec2_windows_root_volume_size = 50  # Root volume size in GB (minimum 50GB recommended)
+
+# IAM Configuration
+# ec2_windows_create_iam_profile = true  # Create IAM instance profile with SSM
+
+# Security Group Rules
+# ec2_windows_security_group_ingress_rules = [
+#   {
+#     from_port   = 3389
+#     to_port     = 3389
+#     protocol    = "tcp"
+#     cidr_blocks = ["10.0.0.0/8"]  # Restrict to VPC or specific CIDR
+#     description = "RDP from VPC"
+#   },
+#   {
+#     from_port   = 5985
+#     to_port     = 5986
+#     protocol    = "tcp"
+#     cidr_blocks = ["10.0.0.0/8"]
+#     description = "WinRM from VPC"
+#   }
+# ]
+
+# User Data - Example: Install IIS and configure
+# ec2_windows_user_data = <<-EOT
+#   <powershell>
+#   # Install IIS
+#   Install-WindowsFeature -name Web-Server -IncludeManagementTools
+#
+#   # Configure application
+#   New-Item -Path "C:\webapp" -ItemType Directory
+#   Set-Content -Path "C:\webapp\index.html" -Value "Hello from Windows Server"
+#
+#   # Start IIS
+#   Start-Service W3SVC
+#   </powershell>
+# EOT
+
+# -----------------------------------------------------------------------------
+# Example Configurations by Use Case
+# -----------------------------------------------------------------------------
+
+# Use Case 1: Linux Web Server (Public)
+# ec2_linux_enabled           = true
+# ec2_linux_instance_type     = "t3.small"
+# ec2_linux_key_name          = "my-keypair"
+# ec2_linux_associate_public_ip = true
+# ec2_linux_user_data = <<-EOT
+#   #!/bin/bash
+#   yum update -y
+#   yum install -y nginx
+#   systemctl start nginx
+#   systemctl enable nginx
+# EOT
+# ec2_linux_security_group_ingress_rules = [
+#   {
+#     from_port   = 22
+#     to_port     = 22
+#     protocol    = "tcp"
+#     cidr_blocks = ["203.0.113.0/24"]
+#     description = "SSH from office"
+#   },
+#   {
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     description = "HTTP from anywhere"
+#   },
+#   {
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#     description = "HTTPS from anywhere"
+#   }
+# ]
+
+# Use Case 2: Linux App Server (Private, SSM only)
+# ec2_linux_enabled           = true
+# ec2_linux_instance_type     = "t3.micro"
+# ec2_linux_associate_public_ip = false
+# ec2_linux_create_iam_profile = true
+# ec2_linux_security_group_ingress_rules = []  # No inbound, SSM uses outbound only
+
+# Use Case 3: Windows App Server (Private, SSM only)
+# ec2_windows_enabled           = true
+# ec2_windows_instance_type     = "t3.medium"
+# ec2_windows_associate_public_ip = false
+# ec2_windows_create_iam_profile = true
+# ec2_windows_security_group_ingress_rules = []  # No inbound, SSM uses outbound only
+
+# Use Case 4: Windows Jump Host (Public, RDP access)
+# ec2_windows_enabled           = true
+# ec2_windows_instance_type     = "t3.medium"
+# ec2_windows_key_name          = "my-keypair"
+# ec2_windows_get_password_data = true
+# ec2_windows_associate_public_ip = true
+# ec2_windows_security_group_ingress_rules = [
+#   {
+#     from_port   = 3389
+#     to_port     = 3389
+#     protocol    = "tcp"
+#     cidr_blocks = ["203.0.113.0/24"]
+#     description = "RDP from office only"
+#   }
+# ]
+
+# Use Case 5: Both Linux and Windows (Mixed Environment)
+# ec2_linux_enabled   = true
+# ec2_windows_enabled = true
+# ec2_linux_instance_type   = "t3.small"
+# ec2_windows_instance_type = "t3.medium"
+# Both instances in private subnets with SSM access
+# ec2_linux_associate_public_ip   = false
+# ec2_windows_associate_public_ip = false
+
+# -----------------------------------------------------------------------------
+# Cost Estimation
+# -----------------------------------------------------------------------------
+# Linux (t3.micro):   ~$8.47/month + storage ($0.092/GB-month)
+# Linux (t3.small):   ~$16.94/month + storage
+# Linux (t3.medium):  ~$33.87/month + storage
+# Windows (t3.medium): ~$34.94/month + storage
+# Windows (t3.large):  ~$69.89/month + storage
+# Storage (gp3, 20GB): ~$1.84/month (Linux)
+# Storage (gp3, 50GB): ~$4.60/month (Windows)
+# Monitoring (optional): $2.10/instance/month
+
+# -----------------------------------------------------------------------------
+# Security Best Practices
+# -----------------------------------------------------------------------------
+# 1. Use private subnets for application servers
+# 2. Restrict security group CIDR blocks to known IPs
+# 3. Use SSM Session Manager instead of SSH/RDP when possible
+# 4. Enable IAM instance profiles for AWS service access
+# 5. Do not embed credentials in user data scripts
+# 6. Use encrypted EBS volumes (enabled by default)
+# 7. Enable termination protection for production instances
+# 8. Regularly apply OS security patches
+# 9. Use bastion hosts or VPN for remote access
+# 10. Implement proper logging and monitoring
+
+# -----------------------------------------------------------------------------
+# Remote State Import Example
+# -----------------------------------------------------------------------------
+# To import network account state, add data source to main.tf:
+#
+# data "terraform_remote_state" "network" {
+#   backend = "s3"
+#   config = {
+#     bucket = "your-terraform-state-bucket"
+#     key    = "network-account/terraform.tfstate"
+#     region = "ap-southeast-1"
+#   }
+# }
+#
+# Then use in variables:
+# vpc_id             = data.terraform_remote_state.network.outputs.vpc_id
+# private_subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
+# public_subnet_ids  = data.terraform_remote_state.network.outputs.public_subnet_ids
