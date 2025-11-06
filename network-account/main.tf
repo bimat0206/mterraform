@@ -206,6 +206,105 @@ module "alb" {
 }
 
 # -----------------------------------------------------------------------------
+# Transit Gateway Flow Logs S3 Bucket (optional)
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket" "tgw_flow_logs" {
+  count = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? 1 : 0
+
+  bucket = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-tgw-flow-logs"
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.naming.org_prefix}-${local.naming.environment}-${local.naming.workload}-tgw-flow-logs"
+    }
+  )
+}
+
+resource "aws_s3_bucket_versioning" "tgw_flow_logs" {
+  count = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? 1 : 0
+
+  bucket = aws_s3_bucket.tgw_flow_logs[0].id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "tgw_flow_logs" {
+  count = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? 1 : 0
+
+  bucket = aws_s3_bucket.tgw_flow_logs[0].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "tgw_flow_logs" {
+  count = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? 1 : 0
+
+  bucket = aws_s3_bucket.tgw_flow_logs[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "tgw_flow_logs" {
+  count = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" && var.tgw_flow_logs_s3_retention_days > 0 ? 1 : 0
+
+  bucket = aws_s3_bucket.tgw_flow_logs[0].id
+
+  rule {
+    id     = "expire-old-logs"
+    status = "Enabled"
+
+    expiration {
+      days = var.tgw_flow_logs_s3_retention_days
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "tgw_flow_logs" {
+  count = var.tgw_enabled && var.tgw_enable_flow_logs && var.tgw_flow_logs_destination_type == "s3" ? 1 : 0
+
+  bucket = aws_s3_bucket.tgw_flow_logs[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AWSLogDeliveryWrite"
+        Effect = "Allow"
+        Principal = {
+          Service = "delivery.logs.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.tgw_flow_logs[0].arn}/*"
+        Condition = {
+          StringEquals = {
+            "s3:x-amz-acl" = "bucket-owner-full-control"
+          }
+        }
+      },
+      {
+        Sid    = "AWSLogDeliveryAclCheck"
+        Effect = "Allow"
+        Principal = {
+          Service = "delivery.logs.amazonaws.com"
+        }
+        Action   = "s3:GetBucketAcl"
+        Resource = aws_s3_bucket.tgw_flow_logs[0].arn
+      }
+    ]
+  })
+}
+
+# -----------------------------------------------------------------------------
 # Transit Gateway Module (optional)
 # -----------------------------------------------------------------------------
 module "transit_gateway" {
@@ -237,10 +336,10 @@ module "transit_gateway" {
   create_custom_route_tables = var.tgw_create_custom_route_tables
   custom_route_tables        = var.tgw_custom_route_tables
 
-  # Flow Logs
+  # Flow Logs with dynamic S3 bucket resolution
   enable_flow_logs                     = var.tgw_enable_flow_logs
   flow_logs_destination_type           = var.tgw_flow_logs_destination_type
-  flow_logs_s3_bucket_arn              = var.tgw_flow_logs_s3_bucket_arn
+  flow_logs_s3_bucket_arn              = var.tgw_flow_logs_destination_type == "s3" ? aws_s3_bucket.tgw_flow_logs[0].arn : ""
   flow_logs_retention_days             = var.tgw_flow_logs_retention_days
   flow_logs_max_aggregation_interval   = var.tgw_flow_logs_max_aggregation_interval
   create_flow_logs_iam_role            = var.tgw_create_flow_logs_iam_role
@@ -260,6 +359,11 @@ module "transit_gateway" {
 
   # Tags
   tags = local.common_tags
+
+  # Ensure S3 bucket is created before TGW Flow Logs
+  depends_on = [
+    aws_s3_bucket_policy.tgw_flow_logs
+  ]
 }
 
 # -----------------------------------------------------------------------------

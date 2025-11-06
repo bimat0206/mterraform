@@ -649,6 +649,12 @@ variable "tgw_flow_logs_retention_days" {
   description = "Number of days to retain flow logs in CloudWatch (0 = indefinite)"
 }
 
+variable "tgw_flow_logs_s3_retention_days" {
+  type        = number
+  default     = 90
+  description = "Number of days to retain flow logs in S3 before expiration (0 = indefinite, only used if destination_type is s3)"
+}
+
 variable "tgw_flow_logs_max_aggregation_interval" {
   type        = number
   default     = 60
