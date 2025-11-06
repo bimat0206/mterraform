@@ -263,3 +263,51 @@ module "rds_mysql" {
   # Tags
   tags = local.common_tags
 }
+
+# -----------------------------------------------------------------------------
+# RDS SQL Server Module (optional)
+# -----------------------------------------------------------------------------
+module "rds_sqlserver" {
+  count  = var.rds_sqlserver_enabled ? 1 : 0
+  source = "../modules/rds-sqlserver"
+
+  # Naming inputs
+  org_prefix  = local.naming.org_prefix
+  environment = local.naming.environment
+  workload    = local.naming.workload
+  service     = "db"
+  identifier  = "02"
+
+  # Network Configuration
+  vpc_id     = var.vpc_id
+  subnet_ids = var.private_subnet_ids
+
+  # Database Configuration
+  engine            = var.rds_sqlserver_engine
+  engine_version    = var.rds_sqlserver_engine_version
+  instance_class    = var.rds_sqlserver_instance_class
+  allocated_storage = var.rds_sqlserver_allocated_storage
+  database_name     = var.rds_sqlserver_database_name
+  master_username   = var.rds_sqlserver_master_username
+
+  # High Availability
+  multi_az = var.rds_sqlserver_multi_az
+
+  # Backup
+  backup_retention_period = var.rds_sqlserver_backup_retention_period
+
+  # Security
+  create_security_group   = true
+  allowed_cidr_blocks     = var.rds_sqlserver_allowed_cidr_blocks
+  deletion_protection     = var.rds_sqlserver_deletion_protection
+
+  # Monitoring
+  performance_insights_enabled = true
+  monitoring_interval          = 60
+
+  # Storage
+  storage_encrypted = true
+
+  # Tags
+  tags = local.common_tags
+}

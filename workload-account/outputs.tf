@@ -211,3 +211,46 @@ output "rds_mysql_connection_command" {
   description = "mysql command to connect to MySQL (if enabled)"
   value       = var.rds_mysql_enabled ? module.rds_mysql[0].mysql_command : null
 }
+
+# -----------------------------------------------------------------------------
+# RDS SQL Server Outputs
+# -----------------------------------------------------------------------------
+output "rds_sqlserver_endpoint" {
+  description = "SQL Server RDS endpoint (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].db_instance_endpoint : null
+}
+
+output "rds_sqlserver_address" {
+  description = "SQL Server RDS address (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].db_instance_address : null
+}
+
+output "rds_sqlserver_port" {
+  description = "SQL Server RDS port (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].db_instance_port : null
+}
+
+output "rds_sqlserver_database_name" {
+  description = "SQL Server database name (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].db_instance_name : null
+}
+
+output "rds_sqlserver_connection_secret_arn" {
+  description = "ARN of the complete connection secret with username, password, endpoint, port, and database name (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].connection_secret_arn : null
+}
+
+output "rds_sqlserver_connection_secret_name" {
+  description = "Name of the complete connection secret (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].connection_secret_name : null
+}
+
+output "rds_sqlserver_retrieve_connection_info_command" {
+  description = "Command to retrieve complete SQL Server connection information from Secrets Manager (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].retrieve_connection_info_command : null
+}
+
+output "rds_sqlserver_connection_command" {
+  description = "sqlcmd command to connect to SQL Server (if enabled)"
+  value       = var.rds_sqlserver_enabled ? module.rds_sqlserver[0].sqlcmd_command : null
+}
