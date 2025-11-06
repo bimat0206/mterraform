@@ -5,6 +5,90 @@ All notable changes to the EKS module will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-01-06
+
+### Added
+- **Secrets Manager Access**: Node groups and Fargate profiles can now retrieve secrets from AWS Secrets Manager
+- **SSM Parameter Store Access**: Node groups and Fargate profiles can now retrieve parameters from SSM Parameter Store
+- **KMS Decryption**: Added conditional KMS decrypt permissions for secrets and parameters
+
+### Security
+- Added inline IAM policy for Secrets Manager and SSM Parameter Store access to node groups
+- Added inline IAM policy for Secrets Manager and SSM Parameter Store access to Fargate profiles
+- KMS decrypt permissions are scoped to only work via Secrets Manager and SSM services (using kms:ViaService condition)
+
+### Notes
+- These permissions allow pods to retrieve secrets without IRSA configuration
+- For production workloads, consider using IRSA (IAM Roles for Service Accounts) for more granular, per-pod permissions
+- The node/Fargate IAM roles provide baseline access for all pods, which is useful for:
+  - Development and testing environments
+  - System-level secrets (e.g., database connection strings, API keys)
+  - Quick prototyping without IRSA setup
+- ECR pull permissions were already included via existing AWS managed policies
+
+### IAM Permissions Summary
+**Node Groups:**
+- ECR: Pull images (via AmazonEC2ContainerRegistryReadOnly)
+- Secrets Manager: GetSecretValue, DescribeSecret
+- SSM Parameter Store: GetParameters, GetParameter, GetParameterHistory
+- KMS: Decrypt (scoped to Secrets Manager and SSM)
+
+**Fargate Profiles:**
+- ECR: Pull images (via AmazonEKSFargatePodExecutionRolePolicy)
+- Secrets Manager: GetSecretValue, DescribeSecret
+- SSM Parameter Store: GetParameters, GetParameter, GetParameterHistory
+- KMS: Decrypt (scoped to Secrets Manager and SSM)
+
+## [1.1.0] - 2025-01-06
+
+### Added
+- **Fargate Profile Support**: Deploy pods on AWS Fargate without managing EC2 nodes
+  - Create multiple Fargate profiles with namespace and label selectors
+  - Automatic IAM role creation for Fargate pod execution
+  - Support for mixed compute (Fargate + EC2 node groups in same cluster)
+  - Private subnet requirement validation for Fargate profiles
+  - Per-profile custom tags support
+
+### New Variables
+- `fargate_profiles`: Map of Fargate profile configurations with subnet_ids, selectors, and tags
+
+### New Outputs
+- `fargate_profile_ids`: Map of Fargate profile IDs
+- `fargate_profile_arns`: Map of Fargate profile ARNs
+- `fargate_profile_status`: Map of Fargate profile statuses
+- `fargate_profile_role_arn`: ARN of Fargate profile IAM role
+- `fargate_enabled`: Whether Fargate profiles are enabled
+
+### File Organization
+- **fargate.tf**: Fargate profile IAM role and profile resources
+
+### Features
+- **Serverless Kubernetes**: Run pods without managing EC2 instances
+- **Automatic Scaling**: Fargate automatically scales based on pod requirements
+- **Hybrid Compute**: Combine Fargate and EC2 node groups in the same cluster
+- **Namespace Isolation**: Target specific namespaces for Fargate deployment
+- **Label-based Scheduling**: Use Kubernetes labels to schedule pods on Fargate
+
+### Use Cases
+- Batch processing and cron jobs
+- Development and testing workloads
+- Bursty and unpredictable workloads
+- Multi-tenant applications with namespace isolation
+
+### Limitations
+- Fargate profiles must use private subnets only
+- No DaemonSets support on Fargate
+- No privileged containers or HostNetwork
+- No GPU workloads
+- Limited to specific vCPU/memory combinations
+- Higher per-pod cost compared to EC2 at scale
+
+### Notes
+- Fargate profiles require at least one selector with namespace
+- Pods must match selector criteria to run on Fargate
+- Fargate uses the pod execution IAM role for pulling images and logs
+- Mix Fargate and EC2 node groups for optimal cost and flexibility
+
 ## [1.0.0] - 2025-01-06
 
 ### Added
