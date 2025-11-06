@@ -200,3 +200,101 @@ output "transit_gateway_describe_command" {
   description = "AWS CLI command to describe the Transit Gateway (if enabled)"
   value       = var.tgw_enabled ? module.transit_gateway[0].describe_transit_gateway_command : null
 }
+
+# -----------------------------------------------------------------------------
+# WAF Outputs
+# -----------------------------------------------------------------------------
+output "waf_web_acl_id" {
+  description = "WAF Web ACL ID (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].web_acl_id : null
+}
+
+output "waf_web_acl_arn" {
+  description = "WAF Web ACL ARN (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].web_acl_arn : null
+}
+
+output "waf_web_acl_name" {
+  description = "WAF Web ACL name (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].web_acl_name : null
+}
+
+output "waf_web_acl_capacity" {
+  description = "WAF Web ACL capacity units (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].web_acl_capacity : null
+}
+
+output "waf_log_group_name" {
+  description = "CloudWatch log group name for WAF logs (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].log_group_name : null
+}
+
+output "waf_log_group_arn" {
+  description = "CloudWatch log group ARN for WAF logs (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].log_group_arn : null
+}
+
+output "waf_enabled_managed_rule_groups" {
+  description = "List of enabled AWS Managed Rule Groups (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].enabled_managed_rule_groups : null
+}
+
+output "waf_rate_limiting_enabled" {
+  description = "Whether rate limiting is enabled (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].rate_limiting_enabled : null
+}
+
+output "waf_rate_limit" {
+  description = "Rate limit threshold (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].rate_limit : null
+}
+
+output "waf_geo_blocking_enabled" {
+  description = "Whether geographic blocking is enabled (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].geo_blocking_enabled : null
+}
+
+output "waf_geo_blocked_countries" {
+  description = "List of blocked country codes (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].geo_blocked_countries : null
+}
+
+output "waf_default_action" {
+  description = "Default action for the Web ACL (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].default_action : null
+}
+
+output "waf_scope" {
+  description = "Scope of the Web ACL (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].scope : null
+}
+
+output "waf_associated_alb_count" {
+  description = "Number of ALBs associated with WAF (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].associated_alb_count : null
+}
+
+output "waf_associated_api_gateway_count" {
+  description = "Number of API Gateway stages associated with WAF (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].associated_api_gateway_count : null
+}
+
+output "waf_view_logs_command" {
+  description = "Command to view WAF logs (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].view_logs_command : null
+}
+
+output "waf_get_sampled_requests_command" {
+  description = "Command to get sampled requests (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].get_sampled_requests_command : null
+}
+
+output "waf_list_resources_command" {
+  description = "Command to list associated resources (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].list_resources_command : null
+}
+
+output "waf_cloudwatch_metric_names" {
+  description = "CloudWatch metric names for WAF (if enabled)"
+  value       = var.waf_enabled ? module.waf[0].cloudwatch_metric_names : null
+}
