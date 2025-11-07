@@ -364,3 +364,156 @@ tags = {
 # - No charge for account assignments
 # - External IdP may have separate costs (Azure AD, Okta, etc.)
 # - You only pay for AWS resources accessed by users
+
+# =============================================================================
+# AWS Config Configuration
+# =============================================================================
+config_enabled = false  # Set to true to enable AWS Config
+
+# # Config Settings
+# config_enable_recorder             = true
+# config_include_global_resources    = true  # Only true in one region
+# config_recording_frequency         = "CONTINUOUS"
+#
+# # Organization Aggregator
+# config_enable_organization_aggregator = true
+# config_aggregator_regions             = []  # Empty = all regions
+#
+# # SNS Notifications
+# config_sns_email_subscriptions = [
+#   "security@example.com",
+#   "compliance@example.com"
+# ]
+#
+# # Example Config Rules
+# config_managed_rules = {
+#   encrypted-volumes = {
+#     description = "Check if EBS volumes are encrypted"
+#     identifier  = "ENCRYPTED_VOLUMES"
+#   }
+#   iam-password-policy = {
+#     description = "Ensure IAM password policy meets requirements"
+#     identifier  = "IAM_PASSWORD_POLICY"
+#     input_parameters = {
+#       RequireUppercaseCharacters = "true"
+#       RequireLowercaseCharacters = "true"
+#       RequireNumbers             = "true"
+#       RequireSymbols             = "true"
+#       MinimumPasswordLength      = "14"
+#       MaxPasswordAge             = "90"
+#     }
+#   }
+#   s3-bucket-public-read-prohibited = {
+#     description = "Check if S3 buckets prohibit public read"
+#     identifier  = "S3_BUCKET_PUBLIC_READ_PROHIBITED"
+#   }
+#   s3-bucket-public-write-prohibited = {
+#     description = "Check if S3 buckets prohibit public write"
+#     identifier  = "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
+#   }
+#   root-account-mfa-enabled = {
+#     description = "Check if root account has MFA enabled"
+#     identifier  = "ROOT_ACCOUNT_MFA_ENABLED"
+#   }
+# }
+
+# =============================================================================
+# AWS GuardDuty Configuration
+# =============================================================================
+guardduty_enabled = false  # Set to true to enable GuardDuty
+
+# # GuardDuty Settings
+# guardduty_finding_frequency = "FIFTEEN_MINUTES"  # FIFTEEN_MINUTES, ONE_HOUR, or SIX_HOURS
+#
+# # Protection Features (all enabled by default)
+# guardduty_enable_s3_protection       = true
+# guardduty_enable_eks_protection      = true
+# guardduty_enable_malware_protection  = true
+# guardduty_enable_rds_protection      = true
+# guardduty_enable_lambda_protection   = true
+#
+# # Organization Configuration
+# guardduty_enable_organization_admin = true
+# guardduty_auto_enable_members       = true  # Auto-enable for new accounts
+#
+# # SNS Notifications (medium and high severity findings)
+# guardduty_sns_email_subscriptions = [
+#   "security@example.com",
+#   "soc@example.com"
+# ]
+# 
+# # Severity Filter (4.0-8.9 = medium to high)
+# # Low: 1-3.9, Medium: 4-6.9, High: 7-8.9
+# # Default: only medium and high severity findings
+# guardduty_severity_filter = [4, 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5.0, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6, 6.0, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 7, 7.0, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9]
+
+# =============================================================================
+# AWS Security Hub Configuration
+# =============================================================================
+securityhub_enabled = false  # Set to true to enable Security Hub
+
+# # Security Hub Settings
+# securityhub_control_finding_generator = "SECURITY_CONTROL"  # or "STANDARD_CONTROL"
+#
+# # Organization Configuration
+# securityhub_enable_organization_admin = true
+# securityhub_auto_enable_members       = true  # Auto-enable for new accounts
+# securityhub_auto_enable_standards     = true  # Auto-enable standards for new accounts
+#
+# # Security Standards (CIS and AWS Foundational enabled by default)
+# securityhub_enable_cis_standard            = true
+# securityhub_cis_version                    = "1.4.0"  # 1.2.0 or 1.4.0
+# securityhub_enable_aws_foundational_standard = true
+# securityhub_aws_foundational_version       = "1.0.0"
+# securityhub_enable_pci_dss_standard        = false  # Enable if handling credit card data
+# securityhub_enable_nist_standard           = false  # Enable for federal compliance
+#
+# # Product Integrations (auto-detects available products)
+# securityhub_enable_product_integrations = true
+#
+# # Finding Aggregator (consolidate findings from all regions)
+# securityhub_enable_finding_aggregator  = true
+# securityhub_aggregator_linking_mode    = "ALL_REGIONS"  # or "SPECIFIED_REGIONS"
+#
+# # SNS Notifications (critical, high, and medium findings)
+# securityhub_sns_email_subscriptions = [
+#   "security@example.com",
+#   "compliance@example.com"
+# ]
+# securityhub_severity_filter       = ["CRITICAL", "HIGH", "MEDIUM"]
+# securityhub_workflow_status_filter = ["NEW", "NOTIFIED"]
+
+# =============================================================================
+# Security Services Notes
+# =============================================================================
+# 
+# AWS Config:
+# - Tracks resource configuration changes across all accounts
+# - Required for compliance reporting (SOC 2, PCI-DSS, HIPAA)
+# - Provides resource inventory and configuration history
+# - Config rules evaluate compliance automatically
+# - Cost: ~$0.003 per configuration item + $0.001 per rule evaluation
+#
+# AWS GuardDuty:
+# - Continuous threat detection using machine learning
+# - Monitors CloudTrail, VPC Flow Logs, DNS logs, S3 data events
+# - Detects compromised instances, reconnaissance, unauthorized access
+# - Auto-enables for new organization accounts
+# - Cost: Starts at $4.60/month + usage-based pricing
+#
+# AWS Security Hub:
+# - Centralized security posture management
+# - Aggregates findings from GuardDuty, Config, Inspector, etc.
+# - Provides security scores and compliance dashboards
+# - CIS AWS Foundations Benchmark automated checks
+# - Cost: ~$0.0010 per 10,000 findings ingested + $0.001 per check
+#
+# Recommended Deployment Order:
+# 1. Enable AWS Config first (required for Security Hub compliance checks)
+# 2. Enable GuardDuty (provides threat detection findings)
+# 3. Enable Security Hub (aggregates findings from Config and GuardDuty)
+#
+# Email Notifications:
+# - All SNS email subscriptions require manual confirmation
+# - Check inbox for confirmation email after deployment
+# - Click confirmation link to start receiving alerts
